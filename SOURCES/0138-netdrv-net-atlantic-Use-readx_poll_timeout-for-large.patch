@@ -1,0 +1,69 @@
+From 2ed39a7b4fa60db0eb2ecbb0490bb7c79ad07235 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:38:35 -0500
+Subject: [PATCH 138/139] [netdrv] net: atlantic: Use readx_poll_timeout() for
+ large timeout
+
+Message-id: <1604687916-15087-139-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338561
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 138/139] net: atlantic: Use readx_poll_timeout() for large timeout
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 9553b62c1dd27df67ab2f52ec8a3bc3501887619
+Author: Sebastian Andrzej Siewior <bigeasy@linutronix.de>
+Date:   Tue Aug 18 18:14:39 2020 +0200
+
+    net: atlantic: Use readx_poll_timeout() for large timeout
+
+    Commit
+       8dcf2ad39fdb2 ("net: atlantic: add hwmon getter for MAC temperature")
+
+    implemented a read callback with an udelay(10000U). This fails to
+    compile on ARM because the delay is >1ms. I doubt that it is needed to
+    spin for 10ms even if possible on x86.
+
+    >From looking at the code, the context appears to be preemptible so using
+    usleep() should work and avoid busy spinning.
+
+    Use readx_poll_timeout() in the poll loop.
+
+    Fixes: 8dcf2ad39fdb2 ("net: atlantic: add hwmon getter for MAC temperature")
+    Cc: Mark Starovoytov <mstarovoitov@marvell.com>
+    Cc: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: Sebastian Andrzej Siewior <sebastian@breakpoint.cc>
+    Acked-by: Guenter Roeck <linux@roeck-us.net>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
+index 16a944707ba9..8941ac4df9e3 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
+@@ -1631,8 +1631,8 @@ static int hw_atl_b0_get_mac_temp(struct aq_hw_s *self, u32 *temp)
+ 		hw_atl_ts_reset_set(self, 0);
+ 	}
+ 
+-	err = readx_poll_timeout_atomic(hw_atl_b0_ts_ready_and_latch_high_get,
+-					self, val, val == 1, 10000U, 500000U);
++	err = readx_poll_timeout(hw_atl_b0_ts_ready_and_latch_high_get, self,
++				 val, val == 1, 10000U, 500000U);
+ 	if (err)
+ 		return err;
+ 
+-- 
+2.13.6
+

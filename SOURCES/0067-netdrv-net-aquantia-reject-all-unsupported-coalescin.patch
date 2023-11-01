@@ -1,0 +1,79 @@
+From 1349f2eaab8ceb587fa183f9f61ecd7021798ae8 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:37:24 -0500
+Subject: [PATCH 067/139] [netdrv] net: aquantia: reject all unsupported
+ coalescing params
+
+Message-id: <1604687916-15087-68-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338494
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 067/139] net: aquantia: reject all unsupported coalescing params
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit fcca747f1800931015d359be48065755ef5c3f25
+Author: Jakub Kicinski <kuba@kernel.org>
+Date:   Mon Mar 9 19:14:59 2020 -0700
+
+    net: aquantia: reject all unsupported coalescing params
+
+    Set ethtool_ops->supported_coalesce_params to let
+    the core reject unsupported coalescing parameters.
+
+    This driver only rejected some of the unsupported parameters.
+
+    Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c | 15 +++------------
+ 1 file changed, 3 insertions(+), 12 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c b/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
+index 0bdaa0d785b7..6781256a318a 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
+@@ -386,21 +386,10 @@ static int aq_ethtool_set_coalesce(struct net_device *ndev,
+ 
+ 	cfg = aq_nic_get_cfg(aq_nic);
+ 
+-	/* This is not yet supported
+-	 */
+-	if (coal->use_adaptive_rx_coalesce || coal->use_adaptive_tx_coalesce)
+-		return -EOPNOTSUPP;
+-
+ 	/* Atlantic only supports timing based coalescing
+ 	 */
+ 	if (coal->rx_max_coalesced_frames > 1 ||
+-	    coal->rx_coalesce_usecs_irq ||
+-	    coal->rx_max_coalesced_frames_irq)
+-		return -EOPNOTSUPP;
+-
+-	if (coal->tx_max_coalesced_frames > 1 ||
+-	    coal->tx_coalesce_usecs_irq ||
+-	    coal->tx_max_coalesced_frames_irq)
++	    coal->tx_max_coalesced_frames > 1)
+ 		return -EOPNOTSUPP;
+ 
+ 	/* We do not support frame counting. Check this
+@@ -742,6 +731,8 @@ static int aq_ethtool_set_priv_flags(struct net_device *ndev, u32 flags)
+ }
+ 
+ const struct ethtool_ops aq_ethtool_ops = {
++	.supported_coalesce_params = ETHTOOL_COALESCE_USECS |
++				     ETHTOOL_COALESCE_MAX_FRAMES,
+ 	.get_link            = aq_ethtool_get_link,
+ 	.get_regs_len        = aq_ethtool_get_regs_len,
+ 	.get_regs            = aq_ethtool_get_regs,
+-- 
+2.13.6
+

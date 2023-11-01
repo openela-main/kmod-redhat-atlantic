@@ -1,0 +1,103 @@
+From 765e85481b20c58eae36f9911ad6289ece7d618b Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:36:25 -0500
+Subject: [PATCH 008/139] [netdrv] net: aquantia: implement vlan offload
+ configuration
+
+Message-id: <1604687916-15087-9-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338434
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 008/139] net: aquantia: implement vlan offload configuration
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 04f207fb0c2fa768da1fd30642bb83554c46847f
+Author: Igor Russkikh <Igor.Russkikh@aquantia.com>
+Date:   Wed Jun 26 12:35:49 2019 +0000
+
+    net: aquantia: implement vlan offload configuration
+
+    set_features should update flags and reinit hardware if
+    vlan offload settings were changed.
+
+    Signed-off-by: Igor Russkikh <igor.russkikh@aquantia.com>
+    Tested-by: Nikita Danilov <ndanilov@aquantia.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_main.c | 34 +++++++++++++++++++-----
+ 1 file changed, 27 insertions(+), 7 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_main.c b/drivers/net/ethernet/aquantia/atlantic/aq_main.c
+index 4ebf083c51c5..b4a0fb281e69 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_main.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_main.c
+@@ -112,11 +112,16 @@ static int aq_ndev_change_mtu(struct net_device *ndev, int new_mtu)
+ static int aq_ndev_set_features(struct net_device *ndev,
+ 				netdev_features_t features)
+ {
++	bool is_vlan_rx_strip = !!(features & NETIF_F_HW_VLAN_CTAG_RX);
++	bool is_vlan_tx_insert = !!(features & NETIF_F_HW_VLAN_CTAG_TX);
+ 	struct aq_nic_s *aq_nic = netdev_priv(ndev);
+-	struct aq_nic_cfg_s *aq_cfg = aq_nic_get_cfg(aq_nic);
++	bool need_ndev_restart = false;
++	struct aq_nic_cfg_s *aq_cfg;
+ 	bool is_lro = false;
+ 	int err = 0;
+ 
++	aq_cfg = aq_nic_get_cfg(aq_nic);
++
+ 	if (!(features & NETIF_F_NTUPLE)) {
+ 		if (aq_nic->ndev->features & NETIF_F_NTUPLE) {
+ 			err = aq_clear_rxnfc_all_rules(aq_nic);
+@@ -139,17 +144,32 @@ static int aq_ndev_set_features(struct net_device *ndev,
+ 
+ 		if (aq_cfg->is_lro != is_lro) {
+ 			aq_cfg->is_lro = is_lro;
+-
+-			if (netif_running(ndev)) {
+-				aq_ndev_close(ndev);
+-				aq_ndev_open(ndev);
+-			}
++			need_ndev_restart = true;
+ 		}
+ 	}
+-	if ((aq_nic->ndev->features ^ features) & NETIF_F_RXCSUM)
++
++	if ((aq_nic->ndev->features ^ features) & NETIF_F_RXCSUM) {
+ 		err = aq_nic->aq_hw_ops->hw_set_offload(aq_nic->aq_hw,
+ 							aq_cfg);
+ 
++		if (unlikely(err))
++			goto err_exit;
++	}
++
++	if (aq_cfg->is_vlan_rx_strip != is_vlan_rx_strip) {
++		aq_cfg->is_vlan_rx_strip = is_vlan_rx_strip;
++		need_ndev_restart = true;
++	}
++	if (aq_cfg->is_vlan_tx_insert != is_vlan_tx_insert) {
++		aq_cfg->is_vlan_tx_insert = is_vlan_tx_insert;
++		need_ndev_restart = true;
++	}
++
++	if (need_ndev_restart && netif_running(ndev)) {
++		aq_ndev_close(ndev);
++		aq_ndev_open(ndev);
++	}
++
+ err_exit:
+ 	return err;
+ }
+-- 
+2.13.6
+

@@ -1,0 +1,71 @@
+From c20ec2bb6bd0fafcfbeff285ac2f9989290009d1 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:38:27 -0500
+Subject: [PATCH 130/139] [netdrv] net: atlantic: enable ipv6 support for TCP
+ LSO and UDP GSO
+
+Message-id: <1604687916-15087-131-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338554
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 130/139] net: atlantic: enable ipv6 support for TCP LSO and UDP GSO
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 8bd60710852fffe4c32b5b7f84de2a6c19d12971
+Author: Igor Russkikh <irusskikh@marvell.com>
+Date:   Mon Jul 20 21:32:39 2020 +0300
+
+    net: atlantic: enable ipv6 support for TCP LSO and UDP GSO
+
+    This patch enables ipv6 support for TCP LSO and UDP GSO.
+    The code itself (aq_nic_map_skb) was ready for this after udp gso feature,
+    but corresponding NETIF_F_TSO6 wasn't enabled.
+
+    We now have tested both tcp and udp v6 GSO, and enabling them safely.
+
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_nic.c           | 2 +-
+ drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c | 1 +
+ 2 files changed, 2 insertions(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_nic.c b/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
+index 7cb2b863d7ac..697ee932787b 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
+@@ -355,7 +355,7 @@ void aq_nic_ndev_init(struct aq_nic_s *self)
+ 	self->ndev->features = aq_hw_caps->hw_features;
+ 	self->ndev->vlan_features |= NETIF_F_HW_CSUM | NETIF_F_RXCSUM |
+ 				     NETIF_F_RXHASH | NETIF_F_SG |
+-				     NETIF_F_LRO | NETIF_F_TSO;
++				     NETIF_F_LRO | NETIF_F_TSO | NETIF_F_TSO6;
+ 	self->ndev->gso_partial_features = NETIF_F_GSO_UDP_L4;
+ 	self->ndev->priv_flags = aq_hw_caps->hw_priv_flags;
+ 	self->ndev->priv_flags |= IFF_LIVE_ADDR_CHANGE;
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
+index 6569bdcea69d..732b570b40d6 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
+@@ -40,6 +40,7 @@
+ 			NETIF_F_RXHASH |  \
+ 			NETIF_F_SG |      \
+ 			NETIF_F_TSO |     \
++			NETIF_F_TSO6 |    \
+ 			NETIF_F_LRO |     \
+ 			NETIF_F_NTUPLE |  \
+ 			NETIF_F_HW_VLAN_CTAG_FILTER | \
+-- 
+2.13.6
+

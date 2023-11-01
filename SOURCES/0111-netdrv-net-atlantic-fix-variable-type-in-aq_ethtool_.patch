@@ -1,0 +1,62 @@
+From 158cf9fc8903f1f3e23eefcc717b286ead2bd3eb Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:38:08 -0500
+Subject: [PATCH 111/139] [netdrv] net: atlantic: fix variable type in
+ aq_ethtool_get_pauseparam
+
+Message-id: <1604687916-15087-112-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338530
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 111/139] net: atlantic: fix variable type in aq_ethtool_get_pauseparam
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit e39b8ffeb9b9a185438b6dc21bb9997f9fb29cbe
+Author: Nikita Danilov <ndanilov@marvell.com>
+Date:   Fri Jun 26 21:40:32 2020 +0300
+
+    net: atlantic: fix variable type in aq_ethtool_get_pauseparam
+
+    This patch fixes the type for variable which is assigned from enum,
+    as such it should have been int, not u32.
+
+    Signed-off-by: Nikita Danilov <ndanilov@marvell.com>
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c b/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
+index 0a611feb94ea..c768a99a263e 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
+@@ -587,13 +587,12 @@ static void aq_ethtool_get_pauseparam(struct net_device *ndev,
+ 				      struct ethtool_pauseparam *pause)
+ {
+ 	struct aq_nic_s *aq_nic = netdev_priv(ndev);
+-	u32 fc = aq_nic->aq_nic_cfg.fc.req;
++	int fc = aq_nic->aq_nic_cfg.fc.req;
+ 
+ 	pause->autoneg = 0;
+ 
+ 	pause->rx_pause = !!(fc & AQ_NIC_FC_RX);
+ 	pause->tx_pause = !!(fc & AQ_NIC_FC_TX);
+-
+ }
+ 
+ static int aq_ethtool_set_pauseparam(struct net_device *ndev,
+-- 
+2.13.6
+

@@ -1,0 +1,57 @@
+From 14dcc60332a3d782f23e72672fa012865e86e629 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:36:35 -0500
+Subject: [PATCH 018/139] [netdrv] net: aquantia: add an error handling in
+ aq_nic_set_multicast_list
+
+Message-id: <1604687916-15087-19-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338444
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 018/139] net: aquantia: add an error handling in aq_nic_set_multicast_list
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 3d00cf2fbb61212f47a3cf838be51c921366c937
+Author: Chenwandun <chenwandun@huawei.com>
+Date:   Fri Oct 18 18:20:37 2019 +0800
+
+    net: aquantia: add an error handling in aq_nic_set_multicast_list
+
+    add an error handling in aq_nic_set_multicast_list, it may not
+    work when hw_multicast_list_set error; and at the same time
+    it will remove gcc Wunused-but-set-variable warning.
+
+    Signed-off-by: Chenwandun <chenwandun@huawei.com>
+    Reviewed-by: Igor Russkikh <igor.russkikh@aquantia.com>
+    Reviewed-by: Andrew Lunn <andrew@lunn.ch>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_nic.c | 2 ++
+ 1 file changed, 2 insertions(+)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_nic.c b/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
+index 2a18439b36fb..137c1de4c6ec 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
+@@ -664,6 +664,8 @@ int aq_nic_set_multicast_list(struct aq_nic_s *self, struct net_device *ndev)
+ 		err = hw_ops->hw_multicast_list_set(self->aq_hw,
+ 						    self->mc_list.ar,
+ 						    self->mc_list.count);
++		if (err < 0)
++			return err;
+ 	}
+ 	return aq_nic_set_packet_filter(self, packet_filter);
+ }
+-- 
+2.13.6
+

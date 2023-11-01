@@ -1,0 +1,35 @@
+Index: src/drivers/net/ethernet/aquantia/atlantic/aq_cfg.h
+===================================================================
+--- src.orig/drivers/net/ethernet/aquantia/atlantic/aq_cfg.h	2021-03-23 01:04:32.444995548 +0100
++++ src/drivers/net/ethernet/aquantia/atlantic/aq_cfg.h	2021-03-23 01:17:46.434047298 +0100
+@@ -83,5 +83,6 @@
+ #define AQ_CFG_DRV_AUTHOR      "Marvell"
+ #define AQ_CFG_DRV_DESC        "Marvell (Aquantia) Corporation(R) Network Driver"
+ #define AQ_CFG_DRV_NAME        "atlantic"
++#define AQ_CFG_DRV_VERSION     "4.18.0-255.el8-dup8.3"
+ 
+ #endif /* AQ_CFG_H */
+Index: src/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
+===================================================================
+--- src.orig/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c	2021-03-23 01:04:33.059990153 +0100
++++ src/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c	2021-03-23 01:07:31.717423151 +0100
+@@ -152,6 +152,7 @@
+ 	regs_count = aq_nic_get_regs_count(aq_nic);
+ 
+ 	strlcat(drvinfo->driver, AQ_CFG_DRV_NAME, sizeof(drvinfo->driver));
++	strlcat(drvinfo->version, AQ_CFG_DRV_VERSION, sizeof(drvinfo->version));
+ 
+ 	snprintf(drvinfo->fw_version, sizeof(drvinfo->fw_version),
+ 		 "%u.%u.%u", firmware_version >> 24,
+Index: src/drivers/net/ethernet/aquantia/atlantic/aq_main.c
+===================================================================
+--- src.orig/drivers/net/ethernet/aquantia/atlantic/aq_main.c	2021-03-23 01:04:32.946991144 +0100
++++ src/drivers/net/ethernet/aquantia/atlantic/aq_main.c	2021-03-23 01:07:58.425189589 +0100
+@@ -22,6 +22,7 @@
+ #include <net/pkt_cls.h>
+ 
+ MODULE_LICENSE("GPL v2");
++MODULE_VERSION(AQ_CFG_DRV_VERSION);
+ MODULE_AUTHOR(AQ_CFG_DRV_AUTHOR);
+ MODULE_DESCRIPTION(AQ_CFG_DRV_DESC);
+ 

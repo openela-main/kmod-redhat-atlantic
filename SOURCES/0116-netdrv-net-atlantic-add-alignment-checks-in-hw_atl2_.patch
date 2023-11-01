@@ -1,0 +1,113 @@
+From cedf24913933c10e49591d19712dcbb198ae9d8d Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:38:13 -0500
+Subject: [PATCH 116/139] [netdrv] net: atlantic: add alignment checks in
+ hw_atl2_utils_fw.c
+
+Message-id: <1604687916-15087-117-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338543
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 116/139] net: atlantic: add alignment checks in hw_atl2_utils_fw.c
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 8664240e303827de2d40f38fc397d1912309359c
+Author: Mark Starovoytov <mstarovoitov@marvell.com>
+Date:   Fri Jun 26 21:40:37 2020 +0300
+
+    net: atlantic: add alignment checks in hw_atl2_utils_fw.c
+
+    This patch adds alignment checks in all the helper macros in
+    hw_atl2_utils_fw.c
+    These alignment checks are compile-time, so runtime is not affected.
+
+    All these helper macros assume the length to be aligned (multiple of 4).
+    If it's not aligned, then there might be issues, e.g. stack corruption.
+
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ .../aquantia/atlantic/hw_atl2/hw_atl2_utils_fw.c   | 32 +++++++++++++++++++---
+ 1 file changed, 28 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils_fw.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils_fw.c
+index 3a9352190816..a8ce9a2c1c51 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils_fw.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils_fw.c
+@@ -16,15 +16,29 @@
+ #define AQ_A2_FW_READ_TRY_MAX 1000
+ 
+ #define hw_atl2_shared_buffer_write(HW, ITEM, VARIABLE) \
++{\
++	BUILD_BUG_ON_MSG((offsetof(struct fw_interface_in, ITEM) % \
++			 sizeof(u32)) != 0,\
++			 "Unaligned write " # ITEM);\
++	BUILD_BUG_ON_MSG((sizeof(VARIABLE) %  sizeof(u32)) != 0,\
++			 "Unaligned write length " # ITEM);\
+ 	hw_atl2_mif_shared_buf_write(HW,\
+ 		(offsetof(struct fw_interface_in, ITEM) / sizeof(u32)),\
+-		(u32 *)&(VARIABLE), sizeof(VARIABLE) / sizeof(u32))
++		(u32 *)&(VARIABLE), sizeof(VARIABLE) / sizeof(u32));\
++}
+ 
+ #define hw_atl2_shared_buffer_get(HW, ITEM, VARIABLE) \
++{\
++	BUILD_BUG_ON_MSG((offsetof(struct fw_interface_in, ITEM) % \
++			 sizeof(u32)) != 0,\
++			 "Unaligned get " # ITEM);\
++	BUILD_BUG_ON_MSG((sizeof(VARIABLE) %  sizeof(u32)) != 0,\
++			 "Unaligned get length " # ITEM);\
+ 	hw_atl2_mif_shared_buf_get(HW, \
+ 		(offsetof(struct fw_interface_in, ITEM) / sizeof(u32)),\
+ 		(u32 *)&(VARIABLE), \
+-		sizeof(VARIABLE) / sizeof(u32))
++		sizeof(VARIABLE) / sizeof(u32));\
++}
+ 
+ /* This should never be used on non atomic fields,
+  * treat any > u32 read as non atomic.
+@@ -33,7 +47,9 @@
+ {\
+ 	BUILD_BUG_ON_MSG((offsetof(struct fw_interface_out, ITEM) % \
+ 			 sizeof(u32)) != 0,\
+-			 "Non aligned read " # ITEM);\
++			 "Unaligned read " # ITEM);\
++	BUILD_BUG_ON_MSG((sizeof(VARIABLE) %  sizeof(u32)) != 0,\
++			 "Unaligned read length " # ITEM);\
+ 	BUILD_BUG_ON_MSG(sizeof(VARIABLE) > sizeof(u32),\
+ 			 "Non atomic read " # ITEM);\
+ 	hw_atl2_mif_shared_buf_read(HW, \
+@@ -42,10 +58,18 @@
+ }
+ 
+ #define hw_atl2_shared_buffer_read_safe(HW, ITEM, DATA) \
++({\
++	BUILD_BUG_ON_MSG((offsetof(struct fw_interface_out, ITEM) % \
++			 sizeof(u32)) != 0,\
++			 "Unaligned read_safe " # ITEM);\
++	BUILD_BUG_ON_MSG((sizeof(((struct fw_interface_out *)0)->ITEM) % \
++			 sizeof(u32)) != 0,\
++			 "Unaligned read_safe length " # ITEM);\
+ 	hw_atl2_shared_buffer_read_block((HW), \
+ 		(offsetof(struct fw_interface_out, ITEM) / sizeof(u32)),\
+ 		sizeof(((struct fw_interface_out *)0)->ITEM) / sizeof(u32),\
+-		(DATA))
++		(DATA));\
++})
+ 
+ static int hw_atl2_shared_buffer_read_block(struct aq_hw_s *self,
+ 					    u32 offset, u32 dwords, void *data)
+-- 
+2.13.6
+

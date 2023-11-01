@@ -1,0 +1,70 @@
+From 6a4f9fb9f5fedc14d5b85bea0eebf9e36d0305db Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:37:27 -0500
+Subject: [PATCH 070/139] [netdrv] net: atlantic: update company name in the
+ driver description
+
+Message-id: <1604687916-15087-71-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338497
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 070/139] net: atlantic: update company name in the driver description
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit fe677b057e33a0345570064c0d82ef6956b005d6
+Author: Igor Russkikh <irusskikh@marvell.com>
+Date:   Thu Apr 30 11:04:29 2020 +0300
+
+    net: atlantic: update company name in the driver description
+
+    Aquantia is now part of Marvell. Thus, update the driver description.
+
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_cfg.h    | 4 ++--
+ drivers/net/ethernet/aquantia/atlantic/aq_common.h | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_cfg.h b/drivers/net/ethernet/aquantia/atlantic/aq_cfg.h
+index 7560f5506e55..52b9833fda99 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_cfg.h
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_cfg.h
+@@ -80,8 +80,8 @@
+ 
+ #define AQ_CFG_LOCK_TRYS   100U
+ 
+-#define AQ_CFG_DRV_AUTHOR      "aQuantia"
+-#define AQ_CFG_DRV_DESC        "aQuantia Corporation(R) Network Driver"
++#define AQ_CFG_DRV_AUTHOR      "Marvell"
++#define AQ_CFG_DRV_DESC        "Marvell (Aquantia) Corporation(R) Network Driver"
+ #define AQ_CFG_DRV_NAME        "atlantic"
+ 
+ #endif /* AQ_CFG_H */
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_common.h b/drivers/net/ethernet/aquantia/atlantic/aq_common.h
+index c8c402b013bb..d5beb798bab6 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_common.h
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_common.h
+@@ -37,7 +37,7 @@
+ #define AQ_DEVICE_ID_AQC111S	0x91B1
+ #define AQ_DEVICE_ID_AQC112S	0x92B1
+ 
+-#define HW_ATL_NIC_NAME "aQuantia AQtion 10Gbit Network Adapter"
++#define HW_ATL_NIC_NAME "Marvell (aQuantia) AQtion 10Gbit Network Adapter"
+ 
+ #define AQ_HWREV_ANY	0
+ #define AQ_HWREV_1	1
+-- 
+2.13.6
+

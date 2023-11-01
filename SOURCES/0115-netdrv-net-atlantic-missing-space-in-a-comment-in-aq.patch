@@ -1,0 +1,67 @@
+From d1ef010ee439ed345501c6031613d526f6baa904 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:38:12 -0500
+Subject: [PATCH 115/139] [netdrv] net: atlantic: missing space in a comment in
+ aq_nic.h
+
+Message-id: <1604687916-15087-116-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338541
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 115/139] net: atlantic: missing space in a comment in aq_nic.h
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 6ec99221d780b3b4b86cf9cdafc18699ff3d06c9
+Author: Dmitry Bezrukov <dbezrukov@marvell.com>
+Date:   Fri Jun 26 21:40:36 2020 +0300
+
+    net: atlantic: missing space in a comment in aq_nic.h
+
+    This patch add a missing space in the comment in aq_nic.h
+
+    Signed-off-by: Dmitry Bezrukov <dbezrukov@marvell.com>
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_nic.h | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_nic.h b/drivers/net/ethernet/aquantia/atlantic/aq_nic.h
+index aa9efa56f5f6..80c70938afd7 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_nic.h
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_nic.h
+@@ -1,7 +1,8 @@
+ /* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- * aQuantia Corporation Network Driver
+- * Copyright (C) 2014-2019 aQuantia Corporation. All rights reserved
++/* Atlantic Network Driver
++ *
++ * Copyright (C) 2014-2019 aQuantia Corporation
++ * Copyright (C) 2019-2020 Marvell International Ltd.
+  */
+ 
+ /* File aq_nic.h: Declaration of common code for NIC. */
+@@ -110,7 +111,7 @@ struct aq_hw_rx_fltrs_s {
+ 	u16                   active_filters;
+ 	struct aq_hw_rx_fl2   fl2;
+ 	struct aq_hw_rx_fl3l4 fl3l4;
+-	/*filter ether type */
++	/* filter ether type */
+ 	u8 fet_reserved_count;
+ };
+ 
+-- 
+2.13.6
+

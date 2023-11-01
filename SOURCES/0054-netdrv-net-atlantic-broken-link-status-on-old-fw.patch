@@ -1,0 +1,58 @@
+From 43bf7bf004c384abb26da727b17908407bd09aaa Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:37:11 -0500
+Subject: [PATCH 054/139] [netdrv] net: atlantic: broken link status on old fw
+
+Message-id: <1604687916-15087-55-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338487
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 054/139] net: atlantic: broken link status on old fw
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit ac70957ee19f198a3884e6f506d75b3f6d8a7dc9
+Author: Igor Russkikh <irusskikh@marvell.com>
+Date:   Mon Jan 6 14:22:28 2020 +0300
+
+    net: atlantic: broken link status on old fw
+
+    Last code/checkpatch cleanup did a copy paste error where code from
+    firmware 3 API logic was moved to firmware 1 logic.
+
+    This resulted in FW1.x users would never see the link state as active.
+
+    Fixes: 7b0c342f1f67 ("net: atlantic: code style cleanup")
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.c | 4 +---
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.c
+index 8910b62e67ed..f547baa6c954 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.c
+@@ -667,9 +667,7 @@ int hw_atl_utils_mpi_get_link_status(struct aq_hw_s *self)
+ 	u32 speed;
+ 
+ 	mpi_state = hw_atl_utils_mpi_get_state(self);
+-	speed = mpi_state & (FW2X_RATE_100M | FW2X_RATE_1G |
+-			     FW2X_RATE_2G5 | FW2X_RATE_5G |
+-			     FW2X_RATE_10G);
++	speed = mpi_state >> HW_ATL_MPI_SPEED_SHIFT;
+ 
+ 	if (!speed) {
+ 		link_status->mbps = 0U;
+-- 
+2.13.6
+

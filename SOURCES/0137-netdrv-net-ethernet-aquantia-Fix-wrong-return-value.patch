@@ -1,0 +1,56 @@
+From 6ce7ad8a55b386f11e57bb77769011d1610cf314 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:38:34 -0500
+Subject: [PATCH 137/139] [netdrv] net: ethernet: aquantia: Fix wrong return
+ value
+
+Message-id: <1604687916-15087-138-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338558
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 137/139] net: ethernet: aquantia: Fix wrong return value
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 0470a48880f8bc42ce26962b79c7b802c5a695ec
+Author: Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
+Date:   Sun Aug 2 19:15:37 2020 +0800
+
+    net: ethernet: aquantia: Fix wrong return value
+
+    In function hw_atl_a0_hw_multicast_list_set(), when an invalid
+    request is encountered, a negative error code should be returned.
+
+    Fixes: bab6de8fd180b ("net: ethernet: aquantia: Atlantic A0 and B0 specific functions")
+    Cc: David VomLehn <vomlehn@texas.net>
+    Signed-off-by: Tianjia Zhang <tianjia.zhang@linux.alibaba.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_a0.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_a0.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_a0.c
+index c38a4b8a14cb..611875ef2cd1 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_a0.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_a0.c
+@@ -786,7 +786,7 @@ static int hw_atl_a0_hw_multicast_list_set(struct aq_hw_s *self,
+ 	int err = 0;
+ 
+ 	if (count > (HW_ATL_A0_MAC_MAX - HW_ATL_A0_MAC_MIN)) {
+-		err = EBADRQC;
++		err = -EBADRQC;
+ 		goto err_exit;
+ 	}
+ 	for (cfg->mc_list_count = 0U; cfg->mc_list_count < count; ++cfg->mc_list_count) {
+-- 
+2.13.6
+

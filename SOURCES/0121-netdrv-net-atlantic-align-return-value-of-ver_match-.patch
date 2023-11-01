@@ -1,0 +1,136 @@
+From 5f7041ec9842b65368681999afefa4fd32560c54 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:38:18 -0500
+Subject: [PATCH 121/139] [netdrv] net: atlantic: align return value of
+ ver_match function with function name
+
+Message-id: <1604687916-15087-122-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338546
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 121/139] net: atlantic: align return value of ver_match function with function name
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit b567edbfc85ac375181862808928aeb381560c68
+Author: Mark Starovoytov <mstarovoitov@marvell.com>
+Date:   Fri Jul 17 21:01:46 2020 +0300
+
+    net: atlantic: align return value of ver_match function with function name
+
+    This patch aligns the return value of hw_atl_utils_ver_match function with
+    its name.
+    Change the return type to bool, because it's better aligned with the actual
+    usage. Return true when the version matches, false otherwise.
+
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ .../aquantia/atlantic/hw_atl/hw_atl_utils.c        | 29 ++++++++++------------
+ .../aquantia/atlantic/hw_atl/hw_atl_utils.h        |  2 +-
+ .../aquantia/atlantic/hw_atl2/hw_atl2_utils.c      |  3 +--
+ 3 files changed, 15 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.c
+index bf4c41cc312b..22f68e4a638c 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.c
+@@ -72,14 +72,11 @@ int hw_atl_utils_initfw(struct aq_hw_s *self, const struct aq_fw_ops **fw_ops)
+ 
+ 	self->fw_ver_actual = hw_atl_utils_get_fw_version(self);
+ 
+-	if (hw_atl_utils_ver_match(HW_ATL_FW_VER_1X,
+-				   self->fw_ver_actual) == 0) {
++	if (hw_atl_utils_ver_match(HW_ATL_FW_VER_1X, self->fw_ver_actual)) {
+ 		*fw_ops = &aq_fw_1x_ops;
+-	} else if (hw_atl_utils_ver_match(HW_ATL_FW_VER_2X,
+-					  self->fw_ver_actual) == 0) {
++	} else if (hw_atl_utils_ver_match(HW_ATL_FW_VER_2X, self->fw_ver_actual)) {
+ 		*fw_ops = &aq_fw_2x_ops;
+-	} else if (hw_atl_utils_ver_match(HW_ATL_FW_VER_3X,
+-					  self->fw_ver_actual) == 0) {
++	} else if (hw_atl_utils_ver_match(HW_ATL_FW_VER_3X, self->fw_ver_actual)) {
+ 		*fw_ops = &aq_fw_2x_ops;
+ 	} else {
+ 		aq_pr_err("Bad FW version detected: %x\n",
+@@ -262,9 +259,9 @@ int hw_atl_utils_soft_reset(struct aq_hw_s *self)
+ 	/* FW 1.x may bootup in an invalid POWER state (WOL feature).
+ 	 * We should work around this by forcing its state back to DEINIT
+ 	 */
+-	if (!hw_atl_utils_ver_match(HW_ATL_FW_VER_1X,
+-				    aq_hw_read_reg(self,
+-						   HW_ATL_MPI_FW_VERSION))) {
++	if (hw_atl_utils_ver_match(HW_ATL_FW_VER_1X,
++				   aq_hw_read_reg(self,
++						  HW_ATL_MPI_FW_VERSION))) {
+ 		int err = 0;
+ 
+ 		hw_atl_utils_mpi_set_state(self, MPI_DEINIT);
+@@ -434,20 +431,20 @@ int hw_atl_write_fwsettings_dwords(struct aq_hw_s *self, u32 offset, u32 *p,
+ 					     p, cnt, MCP_AREA_SETTINGS);
+ }
+ 
+-int hw_atl_utils_ver_match(u32 ver_expected, u32 ver_actual)
++bool hw_atl_utils_ver_match(u32 ver_expected, u32 ver_actual)
+ {
+ 	const u32 dw_major_mask = 0xff000000U;
+ 	const u32 dw_minor_mask = 0x00ffffffU;
+-	int err = 0;
++	bool ver_match;
+ 
+-	err = (dw_major_mask & (ver_expected ^ ver_actual)) ? -EOPNOTSUPP : 0;
+-	if (err < 0)
++	ver_match = (dw_major_mask & (ver_expected ^ ver_actual)) ? false : true;
++	if (!ver_match)
+ 		goto err_exit;
+-	err = ((dw_minor_mask & ver_expected) > (dw_minor_mask & ver_actual)) ?
+-		-EOPNOTSUPP : 0;
++	ver_match = ((dw_minor_mask & ver_expected) > (dw_minor_mask & ver_actual)) ?
++		false : true;
+ 
+ err_exit:
+-	return err;
++	return ver_match;
+ }
+ 
+ static int hw_atl_utils_init_ucp(struct aq_hw_s *self,
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.h b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.h
+index c74cf5cf7e46..f402a7c96b59 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.h
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.h
+@@ -600,7 +600,7 @@ int hw_atl_utils_fw_rpc_call(struct aq_hw_s *self, unsigned int rpc_size);
+ int hw_atl_utils_fw_rpc_wait(struct aq_hw_s *self,
+ 			     struct hw_atl_utils_fw_rpc **rpc);
+ 
+-int hw_atl_utils_ver_match(u32 ver_expected, u32 ver_actual);
++bool hw_atl_utils_ver_match(u32 ver_expected, u32 ver_actual);
+ 
+ extern const struct aq_fw_ops aq_fw_1x_ops;
+ extern const struct aq_fw_ops aq_fw_2x_ops;
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils.c
+index f3766780e975..0fe6257d9c08 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils.c
+@@ -36,8 +36,7 @@ int hw_atl2_utils_initfw(struct aq_hw_s *self, const struct aq_fw_ops **fw_ops)
+ 
+ 	self->fw_ver_actual = hw_atl2_utils_get_fw_version(self);
+ 
+-	if (hw_atl_utils_ver_match(HW_ATL2_FW_VER_1X,
+-				   self->fw_ver_actual) == 0) {
++	if (hw_atl_utils_ver_match(HW_ATL2_FW_VER_1X, self->fw_ver_actual)) {
+ 		*fw_ops = &aq_a2_fw_ops;
+ 	} else {
+ 		aq_pr_err("Bad FW version detected: %x, but continue\n",
+-- 
+2.13.6
+

@@ -1,0 +1,52 @@
+From 9c6017427a003727312b3a7608cf850202ca1f85 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:36:53 -0500
+Subject: [PATCH 036/139] [netdrv] net: aquantia: remove unused including
+ <linux/version.h>
+
+Message-id: <1604687916-15087-37-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338467
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 036/139] net: aquantia: remove unused including <linux/version.h>
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 207136dfeb3b2cde873b48d745100fa688c83f06
+Author: YueHaibing <yuehaibing@huawei.com>
+Date:   Sat Oct 26 02:51:09 2019 +0000
+
+    net: aquantia: remove unused including <linux/version.h>
+
+    Remove including <linux/version.h> that don't need it.
+
+    Signed-off-by: YueHaibing <yuehaibing@huawei.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_ptp.h | 1 -
+ 1 file changed, 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_ptp.h b/drivers/net/ethernet/aquantia/atlantic/aq_ptp.h
+index bf503a40b6a4..231906431a48 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_ptp.h
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_ptp.h
+@@ -9,7 +9,6 @@
+ #define AQ_PTP_H
+ 
+ #include <linux/net_tstamp.h>
+-#include <linux/version.h>
+ 
+ #if IS_REACHABLE(CONFIG_PTP_1588_CLOCK)
+ 
+-- 
+2.13.6
+

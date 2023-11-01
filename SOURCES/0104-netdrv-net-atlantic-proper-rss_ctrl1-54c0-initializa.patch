@@ -1,0 +1,141 @@
+From 7df3335e29aad289cb8a5a498cf237c04f6cfec9 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:38:01 -0500
+Subject: [PATCH 104/139] [netdrv] net: atlantic: proper rss_ctrl1 (54c0)
+ initialization
+
+Message-id: <1604687916-15087-105-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338533
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 104/139] net: atlantic: proper rss_ctrl1 (54c0) initialization
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 40f05e5b0d0e6ed5cc868cd09fa976495716b8f9
+Author: Mark Starovoytov <mstarovoitov@marvell.com>
+Date:   Fri May 22 11:19:48 2020 +0300
+
+    net: atlantic: proper rss_ctrl1 (54c0) initialization
+
+    This patch fixes an inconsistency between code and spec, which
+    was found while working on the QoS implementation.
+
+    When 8TCs are used, 2 is the maximum supported number of index bits.
+    In a 4TC mode, we do support 3, but we shouldn't really use the bytes,
+    which are intended for the 8TC mode.
+
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ .../net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c    | 16 ++++++++++++++--
+ .../net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.h    |  2 ++
+ .../aquantia/atlantic/hw_atl/hw_atl_b0_internal.h        |  4 ++++
+ drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2.c |  4 +---
+ .../aquantia/atlantic/hw_atl2/hw_atl2_internal.h         |  3 ---
+ 5 files changed, 21 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
+index 320f3669305d..14d79f70cad7 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
+@@ -447,6 +447,19 @@ static int hw_atl_b0_hw_init_tx_path(struct aq_hw_s *self)
+ 	return aq_hw_err_from_flags(self);
+ }
+ 
++void hw_atl_b0_hw_init_rx_rss_ctrl1(struct aq_hw_s *self)
++{
++	struct aq_nic_cfg_s *cfg = self->aq_nic_cfg;
++	u32 rss_ctrl1 = HW_ATL_RSS_DISABLED;
++
++	if (cfg->is_rss)
++		rss_ctrl1 = (cfg->tc_mode == AQ_TC_MODE_8TCS) ?
++			    HW_ATL_RSS_ENABLED_8TCS_2INDEX_BITS :
++			    HW_ATL_RSS_ENABLED_4TCS_3INDEX_BITS;
++
++	hw_atl_reg_rx_flr_rss_control1set(self, rss_ctrl1);
++}
++
+ static int hw_atl_b0_hw_init_rx_path(struct aq_hw_s *self)
+ {
+ 	struct aq_nic_cfg_s *cfg = self->aq_nic_cfg;
+@@ -459,8 +472,7 @@ static int hw_atl_b0_hw_init_rx_path(struct aq_hw_s *self)
+ 	hw_atl_rpb_rx_flow_ctl_mode_set(self, 1U);
+ 
+ 	/* RSS Ring selection */
+-	hw_atl_reg_rx_flr_rss_control1set(self, cfg->is_rss ?
+-					0xB3333333U : 0x00000000U);
++	hw_atl_b0_hw_init_rx_rss_ctrl1(self);
+ 
+ 	/* Multicast filters */
+ 	for (i = HW_ATL_B0_MAC_MAX; i--;) {
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.h b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.h
+index b855459272ca..30f468f2084d 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.h
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.h
+@@ -58,6 +58,8 @@ int hw_atl_b0_hw_ring_tx_head_update(struct aq_hw_s *self,
+ int hw_atl_b0_hw_ring_tx_stop(struct aq_hw_s *self, struct aq_ring_s *ring);
+ int hw_atl_b0_hw_ring_rx_stop(struct aq_hw_s *self, struct aq_ring_s *ring);
+ 
++void hw_atl_b0_hw_init_rx_rss_ctrl1(struct aq_hw_s *self);
++
+ int hw_atl_b0_hw_mac_addr_set(struct aq_hw_s *self, u8 *mac_addr);
+ 
+ int hw_atl_b0_hw_start(struct aq_hw_s *self);
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0_internal.h b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0_internal.h
+index 4fba4e0928c7..cf460d61a45e 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0_internal.h
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0_internal.h
+@@ -151,6 +151,10 @@
+ #define HW_ATL_B0_MAX_RXD 8184U
+ #define HW_ATL_B0_MAX_TXD 8184U
+ 
++#define HW_ATL_RSS_DISABLED 0x00000000U
++#define HW_ATL_RSS_ENABLED_8TCS_2INDEX_BITS 0xA2222222U
++#define HW_ATL_RSS_ENABLED_4TCS_3INDEX_BITS 0x80003333U
++
+ /* HW layer capabilities */
+ 
+ #endif /* HW_ATL_B0_INTERNAL_H */
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2.c
+index f941773b3e20..8df9d4ef36f0 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2.c
+@@ -475,9 +475,7 @@ static int hw_atl2_hw_init_rx_path(struct aq_hw_s *self)
+ 	hw_atl2_rpf_rss_hash_type_set(self, HW_ATL2_RPF_RSS_HASH_TYPE_ALL);
+ 
+ 	/* RSS Ring selection */
+-	hw_atl_reg_rx_flr_rss_control1set(self, cfg->is_rss ?
+-						HW_ATL_RSS_ENABLED_3INDEX_BITS :
+-						HW_ATL_RSS_DISABLED);
++	hw_atl_b0_hw_init_rx_rss_ctrl1(self);
+ 
+ 	/* Multicast filters */
+ 	for (i = HW_ATL2_MAC_MAX; i--;) {
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_internal.h b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_internal.h
+index 9ac1979a4867..5a89bb8722f9 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_internal.h
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_internal.h
+@@ -117,9 +117,6 @@ enum HW_ATL2_RPF_RSS_HASH_TYPE {
+ 					HW_ATL2_RPF_RSS_HASH_TYPE_IPV6_EX_UDP,
+ };
+ 
+-#define HW_ATL_RSS_DISABLED 0x00000000U
+-#define HW_ATL_RSS_ENABLED_3INDEX_BITS 0xB3333333U
+-
+ #define HW_ATL_MCAST_FLT_ANY_TO_HOST 0x00010FFFU
+ 
+ struct hw_atl2_priv {
+-- 
+2.13.6
+

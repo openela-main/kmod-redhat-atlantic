@@ -1,0 +1,91 @@
+From 60461039ea30f77338af1143e6e2106baa6982c4 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:38:10 -0500
+Subject: [PATCH 113/139] [netdrv] net: atlantic: make aq_pci_func_init static
+
+Message-id: <1604687916-15087-114-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338537
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 113/139] net: atlantic: make aq_pci_func_init static
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit ab3518acac42751f5e85c57d5d14ffcd897e1957
+Author: Mark Starovoytov <mstarovoitov@marvell.com>
+Date:   Fri Jun 26 21:40:34 2020 +0300
+
+    net: atlantic: make aq_pci_func_init static
+
+    This patch makes aq_pci_func_init() static, because it's not used anywhere
+    outside the file itself.
+
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_pci_func.c | 9 +++++----
+ drivers/net/ethernet/aquantia/atlantic/aq_pci_func.h | 8 ++++----
+ 2 files changed, 9 insertions(+), 8 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_pci_func.c b/drivers/net/ethernet/aquantia/atlantic/aq_pci_func.c
+index 908b35f1e7a2..4526d80acb37 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_pci_func.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_pci_func.c
+@@ -1,7 +1,8 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * aQuantia Corporation Network Driver
+- * Copyright (C) 2014-2019 aQuantia Corporation. All rights reserved
++/* Atlantic Network Driver
++ *
++ * Copyright (C) 2014-2019 aQuantia Corporation
++ * Copyright (C) 2019-2020 Marvell International Ltd.
+  */
+ 
+ /* File aq_pci_func.c: Definition of PCI functions. */
+@@ -113,7 +114,7 @@ static int aq_pci_probe_get_hw_by_id(struct pci_dev *pdev,
+ 	return 0;
+ }
+ 
+-int aq_pci_func_init(struct pci_dev *pdev)
++static int aq_pci_func_init(struct pci_dev *pdev)
+ {
+ 	int err;
+ 
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_pci_func.h b/drivers/net/ethernet/aquantia/atlantic/aq_pci_func.h
+index 77be7ee0d7b3..3fa5f7a73680 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_pci_func.h
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_pci_func.h
+@@ -1,7 +1,8 @@
+ /* SPDX-License-Identifier: GPL-2.0-only */
+-/*
+- * aQuantia Corporation Network Driver
+- * Copyright (C) 2014-2017 aQuantia Corporation. All rights reserved
++/* Atlantic Network Driver
++ *
++ * Copyright (C) 2014-2019 aQuantia Corporation
++ * Copyright (C) 2019-2020 Marvell International Ltd.
+  */
+ 
+ /* File aq_pci_func.h: Declaration of PCI functions. */
+@@ -19,7 +20,6 @@ struct aq_board_revision_s {
+ 	const struct aq_hw_caps_s *caps;
+ };
+ 
+-int aq_pci_func_init(struct pci_dev *pdev);
+ int aq_pci_func_alloc_irq(struct aq_nic_s *self, unsigned int i,
+ 			  char *name, irq_handler_t irq_handler,
+ 			  void *irq_arg, cpumask_t *affinity_mask);
+-- 
+2.13.6
+

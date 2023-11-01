@@ -1,0 +1,67 @@
+From 9134c7de8d7f224e6cefa20aab03fc28f2aba16f Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:38:11 -0500
+Subject: [PATCH 114/139] [netdrv] net: atlantic: fix typo in aq_ring_tx_clean
+
+Message-id: <1604687916-15087-115-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338544
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 114/139] net: atlantic: fix typo in aq_ring_tx_clean
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 586616cbd4663a51a53f57ad503d7a93416762c0
+Author: Mark Starovoytov <mstarovoitov@marvell.com>
+Date:   Fri Jun 26 21:40:35 2020 +0300
+
+    net: atlantic: fix typo in aq_ring_tx_clean
+
+    This patch fixes a typo in aq_ring_tx_clean.
+    stats is a union, so the typo doesn't cause any issues, but it's a typo
+    nonetheless.
+
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_ring.c | 9 +++++----
+ 1 file changed, 5 insertions(+), 4 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_ring.c b/drivers/net/ethernet/aquantia/atlantic/aq_ring.c
+index 68fdb3994088..b67b24a0d9a6 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_ring.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_ring.c
+@@ -1,7 +1,8 @@
+ // SPDX-License-Identifier: GPL-2.0-only
+-/*
+- * aQuantia Corporation Network Driver
+- * Copyright (C) 2014-2019 aQuantia Corporation. All rights reserved
++/* Atlantic Network Driver
++ *
++ * Copyright (C) 2014-2019 aQuantia Corporation
++ * Copyright (C) 2019-2020 Marvell International Ltd.
+  */
+ 
+ /* File aq_ring.c: Definition of functions for Rx/Tx rings. */
+@@ -279,7 +280,7 @@ bool aq_ring_tx_clean(struct aq_ring_s *self)
+ 		}
+ 
+ 		if (unlikely(buff->is_eop)) {
+-			++self->stats.rx.packets;
++			++self->stats.tx.packets;
+ 			self->stats.tx.bytes += buff->skb->len;
+ 
+ 			dev_kfree_skb_any(buff->skb);
+-- 
+2.13.6
+

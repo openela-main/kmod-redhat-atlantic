@@ -1,0 +1,55 @@
+From dd499904538592d7ca8d7764b02b12bc0b098f2a Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:36:27 -0500
+Subject: [PATCH 010/139] [netdrv] net: aquantia: fix limit of vlan filters
+
+Message-id: <1604687916-15087-11-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338437
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 010/139] net: aquantia: fix limit of vlan filters
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 392349f60110dc2c3daf86464fd926afc53d6143
+Author: Dmitry Bogdanov <dmitry.bogdanov@aquantia.com>
+Date:   Fri Aug 30 12:08:33 2019 +0000
+
+    net: aquantia: fix limit of vlan filters
+
+    Fix a limit condition of vlans on the interface before setting vlan
+    promiscuous mode
+
+    Fixes: 48dd73d08d4dd ("net: aquantia: fix vlans not working over bridged network")
+    Signed-off-by: Dmitry Bogdanov <dmitry.bogdanov@aquantia.com>
+    Signed-off-by: Igor Russkikh <igor.russkikh@aquantia.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_filters.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_filters.c b/drivers/net/ethernet/aquantia/atlantic/aq_filters.c
+index b13704544a23..aee827f07c16 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_filters.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_filters.c
+@@ -844,7 +844,7 @@ int aq_filters_vlans_update(struct aq_nic_s *aq_nic)
+ 		return err;
+ 
+ 	if (aq_nic->ndev->features & NETIF_F_HW_VLAN_CTAG_FILTER) {
+-		if (hweight < AQ_VLAN_MAX_FILTERS && hweight > 0) {
++		if (hweight <= AQ_VLAN_MAX_FILTERS && hweight > 0) {
+ 			err = aq_hw_ops->hw_filter_vlan_ctrl(aq_hw,
+ 				!(aq_nic->packet_filter & IFF_PROMISC));
+ 			aq_nic->aq_nic_cfg.is_vlan_force_promisc = false;
+-- 
+2.13.6
+

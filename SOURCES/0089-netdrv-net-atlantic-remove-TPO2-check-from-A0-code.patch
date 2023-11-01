@@ -1,0 +1,55 @@
+From 1b38e48b56c98151356fccf0c2ad1e277566fa79 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:37:46 -0500
+Subject: [PATCH 089/139] [netdrv] net: atlantic: remove TPO2 check from A0
+ code
+
+Message-id: <1604687916-15087-90-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338520
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 089/139] net: atlantic: remove TPO2 check from A0 code
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit c64d7b23f51161ceb6e92f8e5b8077e8e04ddbef
+Author: Mark Starovoytov <mstarovoitov@marvell.com>
+Date:   Sat May 9 09:46:57 2020 +0300
+
+    net: atlantic: remove TPO2 check from A0 code
+
+    TPO2 was introduced in B0 only, no reason to check for it in A0 code.
+
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_a0.c | 3 +--
+ 1 file changed, 1 insertion(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_a0.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_a0.c
+index 70f06c40bdf2..1b0670a8ae33 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_a0.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_a0.c
+@@ -268,8 +268,7 @@ static int hw_atl_a0_hw_init_tx_path(struct aq_hw_s *self)
+ 	hw_atl_tdm_tx_desc_wr_wb_irq_en_set(self, 1U);
+ 
+ 	/* misc */
+-	aq_hw_write_reg(self, 0x00007040U, ATL_HW_IS_CHIP_FEATURE(self, TPO2) ?
+-			0x00010000U : 0x00000000U);
++	aq_hw_write_reg(self, 0x00007040U, 0x00000000U);
+ 	hw_atl_tdm_tx_dca_en_set(self, 0U);
+ 	hw_atl_tdm_tx_dca_mode_set(self, 0U);
+ 
+-- 
+2.13.6
+
