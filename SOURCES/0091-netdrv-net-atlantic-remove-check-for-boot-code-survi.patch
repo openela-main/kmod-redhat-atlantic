@@ -1,0 +1,61 @@
+From f6b03427010b384184320f64ce0b3400cf3717bd Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:37:48 -0500
+Subject: [PATCH 091/139] [netdrv] net: atlantic: remove check for boot code
+ survivability before reset request
+
+Message-id: <1604687916-15087-92-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338510
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 091/139] net: atlantic: remove check for boot code survivability before reset request
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 097d638cf4e19be208d26c6bbbca7f8da348294a
+Author: Mark Starovoytov <mstarovoitov@marvell.com>
+Date:   Sat May 9 09:46:59 2020 +0300
+
+    net: atlantic: remove check for boot code survivability before reset request
+
+    This patch removes unnecessary check for boot code survivability before
+    reset request.
+
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils.c | 8 --------
+ 1 file changed, 8 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils.c
+index 85ccc9a011a0..f3766780e975 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils.c
+@@ -75,14 +75,6 @@ int hw_atl2_utils_soft_reset(struct aq_hw_s *self)
+ 	u32 rbl_request;
+ 	int err;
+ 
+-	err = readx_poll_timeout_atomic(hw_atl2_mif_mcp_boot_reg_get, self,
+-				rbl_status,
+-				((rbl_status & AQ_A2_BOOT_STARTED) &&
+-				 (rbl_status != 0xFFFFFFFFu)),
+-				10, 500000);
+-	if (err)
+-		aq_pr_trace("Boot code probably hanged, reboot anyway");
+-
+ 	hw_atl2_mif_host_req_int_clr(self, 0x01);
+ 	rbl_request = AQ_A2_FW_BOOT_REQ_REBOOT;
+ #ifdef AQ_CFG_FAST_START
+-- 
+2.13.6
+

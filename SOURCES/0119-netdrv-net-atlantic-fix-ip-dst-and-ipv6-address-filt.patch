@@ -1,0 +1,82 @@
+From b8d0c406dd0c8777bea6d5d9e1887063180dae2c Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:38:16 -0500
+Subject: [PATCH 119/139] [netdrv] net: atlantic: fix ip dst and ipv6 address
+ filters
+
+Message-id: <1604687916-15087-120-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338567
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 119/139] net: atlantic: fix ip dst and ipv6 address filters
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit a42e6aee7f47a8a68d09923c720fc8f605a04207
+Author: Dmitry Bogdanov <dbogdanov@marvell.com>
+Date:   Wed Jul 8 17:17:10 2020 +0300
+
+    net: atlantic: fix ip dst and ipv6 address filters
+
+    This patch fixes ip dst and ipv6 address filters.
+    There were 2 mistakes in the code, which led to the issue:
+    * invalid register was used for ipv4 dst address;
+    * incorrect write order of dwords for ipv6 addresses.
+
+    Fixes: 23e7a718a49b ("net: aquantia: add rx-flow filter definitions")
+    Signed-off-by: Dmitry Bogdanov <dbogdanov@marvell.com>
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: Alexander Lobakin <alobakin@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_llh.c          | 4 ++--
+ drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_llh_internal.h | 2 +-
+ 2 files changed, 3 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_llh.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_llh.c
+index 3c8e8047ea1e..d775b23025c1 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_llh.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_llh.c
+@@ -1700,7 +1700,7 @@ void hw_atl_rpfl3l4_ipv6_src_addr_set(struct aq_hw_s *aq_hw, u8 location,
+ 	for (i = 0; i < 4; ++i)
+ 		aq_hw_write_reg(aq_hw,
+ 				HW_ATL_RPF_L3_SRCA_ADR(location + i),
+-				ipv6_src[i]);
++				ipv6_src[3 - i]);
+ }
+ 
+ void hw_atl_rpfl3l4_ipv6_dest_addr_set(struct aq_hw_s *aq_hw, u8 location,
+@@ -1711,7 +1711,7 @@ void hw_atl_rpfl3l4_ipv6_dest_addr_set(struct aq_hw_s *aq_hw, u8 location,
+ 	for (i = 0; i < 4; ++i)
+ 		aq_hw_write_reg(aq_hw,
+ 				HW_ATL_RPF_L3_DSTA_ADR(location + i),
+-				ipv6_dest[i]);
++				ipv6_dest[3 - i]);
+ }
+ 
+ u32 hw_atl_sem_ram_get(struct aq_hw_s *self)
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_llh_internal.h b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_llh_internal.h
+index 06220792daf1..7430ff025134 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_llh_internal.h
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_llh_internal.h
+@@ -1360,7 +1360,7 @@
+  */
+ 
+  /* Register address for bitfield pif_rpf_l3_da0_i[31:0] */
+-#define HW_ATL_RPF_L3_DSTA_ADR(filter) (0x000053B0 + (filter) * 0x4)
++#define HW_ATL_RPF_L3_DSTA_ADR(filter) (0x000053D0 + (filter) * 0x4)
+ /* Bitmask for bitfield l3_da0[1F:0] */
+ #define HW_ATL_RPF_L3_DSTA_MSK 0xFFFFFFFFu
+ /* Inverted bitmask for bitfield l3_da0[1F:0] */
+-- 
+2.13.6
+

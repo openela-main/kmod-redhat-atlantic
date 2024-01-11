@@ -1,0 +1,63 @@
+From 0f412f39e5e9f34f62dbc6bc1477233eb7d45801 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:37:32 -0500
+Subject: [PATCH 075/139] [netdrv] net: atlantic: make hw_get_regs optional
+
+Message-id: <1604687916-15087-76-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338501
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 075/139] net: atlantic: make hw_get_regs optional
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit d0f23741c202c685447050713907f3be39a985ee
+Author: Mark Starovoytov <mstarovoitov@marvell.com>
+Date:   Thu Apr 30 11:04:34 2020 +0300
+
+    net: atlantic: make hw_get_regs optional
+
+    This patch fixes potential crash in case if hw_get_regs is NULL.
+
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_nic.c | 6 ++++++
+ 1 file changed, 6 insertions(+)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_nic.c b/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
+index 6d02e40b43a4..e4a33206d365 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
+@@ -762,6 +762,9 @@ int aq_nic_get_regs(struct aq_nic_s *self, struct ethtool_regs *regs, void *p)
+ 	u32 *regs_buff = p;
+ 	int err = 0;
+ 
++	if (unlikely(!self->aq_hw_ops->hw_get_regs))
++		return -EOPNOTSUPP;
++
+ 	regs->version = 1;
+ 
+ 	err = self->aq_hw_ops->hw_get_regs(self->aq_hw,
+@@ -776,6 +779,9 @@ int aq_nic_get_regs(struct aq_nic_s *self, struct ethtool_regs *regs, void *p)
+ 
+ int aq_nic_get_regs_count(struct aq_nic_s *self)
+ {
++	if (unlikely(!self->aq_hw_ops->hw_get_regs))
++		return 0;
++
+ 	return self->aq_nic_cfg.aq_hw_caps->mac_regs_count;
+ }
+ 
+-- 
+2.13.6
+

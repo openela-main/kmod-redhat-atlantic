@@ -1,0 +1,145 @@
+From 3b424fc9c6e2cb55c3a59e2be46e178ebaeb3f2d Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:38:07 -0500
+Subject: [PATCH 110/139] [netdrv] net: atlantic: A2: phy loopback support
+
+Message-id: <1604687916-15087-111-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338538
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 110/139] net: atlantic: A2: phy loopback support
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit ecab78703f3b87b3e21160719b08819c7cc0f4e5
+Author: Dmitry Bogdanov <dbogdanov@marvell.com>
+Date:   Mon Jun 22 17:53:09 2020 +0300
+
+    net: atlantic: A2: phy loopback support
+
+    This patch adds the phy loopback support on A2.
+
+    Signed-off-by: Dmitry Bogdanov <dbogdanov@marvell.com>
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ .../net/ethernet/aquantia/atlantic/aq_ethtool.c    |  5 +++--
+ .../ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c  |  2 +-
+ .../ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.h  |  1 +
+ .../ethernet/aquantia/atlantic/hw_atl2/hw_atl2.c   |  1 +
+ .../aquantia/atlantic/hw_atl2/hw_atl2_utils_fw.c   | 23 ++++++++++++++++++++++
+ 5 files changed, 29 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c b/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
+index f800f69690ae..0a611feb94ea 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
+@@ -707,6 +707,7 @@ static int aq_ethtool_set_priv_flags(struct net_device *ndev, u32 flags)
+ 	struct aq_nic_s *aq_nic = netdev_priv(ndev);
+ 	struct aq_nic_cfg_s *cfg;
+ 	u32 priv_flags;
++	int ret = 0;
+ 
+ 	cfg = aq_nic_get_cfg(aq_nic);
+ 	priv_flags = cfg->priv_flags;
+@@ -728,10 +729,10 @@ static int aq_ethtool_set_priv_flags(struct net_device *ndev, u32 flags)
+ 			dev_open(ndev, NULL);
+ 		}
+ 	} else if ((priv_flags ^ flags) & AQ_HW_LOOPBACK_MASK) {
+-		aq_nic_set_loopback(aq_nic);
++		ret = aq_nic_set_loopback(aq_nic);
+ 	}
+ 
+-	return 0;
++	return ret;
+ }
+ 
+ const struct ethtool_ops aq_ethtool_ops = {
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
+index 8ed6fd845969..b023c3324a59 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
+@@ -1556,7 +1556,7 @@ static int hw_atl_b0_hw_vlan_ctrl(struct aq_hw_s *self, bool enable)
+ 	return aq_hw_err_from_flags(self);
+ }
+ 
+-static int hw_atl_b0_set_loopback(struct aq_hw_s *self, u32 mode, bool enable)
++int hw_atl_b0_set_loopback(struct aq_hw_s *self, u32 mode, bool enable)
+ {
+ 	switch (mode) {
+ 	case AQ_HW_LOOPBACK_DMA_SYS:
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.h b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.h
+index bd9a6fb005c9..66d158900141 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.h
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.h
+@@ -63,6 +63,7 @@ void hw_atl_b0_hw_init_rx_rss_ctrl1(struct aq_hw_s *self);
+ int hw_atl_b0_hw_mac_addr_set(struct aq_hw_s *self, u8 *mac_addr);
+ 
+ int hw_atl_b0_set_fc(struct aq_hw_s *self, u32 fc, u32 tc);
++int hw_atl_b0_set_loopback(struct aq_hw_s *self, u32 mode, bool enable);
+ 
+ int hw_atl_b0_hw_start(struct aq_hw_s *self);
+ 
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2.c
+index c306c26e802b..c65e6daad0e5 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2.c
+@@ -843,5 +843,6 @@ const struct aq_hw_ops hw_atl2_ops = {
+ 	.hw_get_hw_stats             = hw_atl2_utils_get_hw_stats,
+ 	.hw_get_fw_version           = hw_atl2_utils_get_fw_version,
+ 	.hw_set_offload              = hw_atl_b0_hw_offload_set,
++	.hw_set_loopback             = hw_atl_b0_set_loopback,
+ 	.hw_set_fc                   = hw_atl_b0_set_fc,
+ };
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils_fw.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils_fw.c
+index c5d1a1404042..3a9352190816 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils_fw.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils_fw.c
+@@ -427,6 +427,28 @@ static u32 aq_a2_fw_get_flow_control(struct aq_hw_s *self, u32 *fcmode)
+ 	return 0;
+ }
+ 
++static int aq_a2_fw_set_phyloopback(struct aq_hw_s *self, u32 mode, bool enable)
++{
++	struct link_options_s link_options;
++
++	hw_atl2_shared_buffer_get(self, link_options, link_options);
++
++	switch (mode) {
++	case AQ_HW_LOOPBACK_PHYINT_SYS:
++		link_options.internal_loopback = enable;
++		break;
++	case AQ_HW_LOOPBACK_PHYEXT_SYS:
++		link_options.external_loopback = enable;
++		break;
++	default:
++		return -EINVAL;
++	}
++
++	hw_atl2_shared_buffer_write(self, link_options, link_options);
++
++	return hw_atl2_shared_buffer_finish_ack(self);
++}
++
+ u32 hw_atl2_utils_get_fw_version(struct aq_hw_s *self)
+ {
+ 	struct version_s version;
+@@ -468,4 +490,5 @@ const struct aq_fw_ops aq_a2_fw_ops = {
+ 	.get_eee_rate       = aq_a2_fw_get_eee_rate,
+ 	.set_flow_control   = aq_a2_fw_set_flow_control,
+ 	.get_flow_control   = aq_a2_fw_get_flow_control,
++	.set_phyloopback    = aq_a2_fw_set_phyloopback,
+ };
+-- 
+2.13.6
+

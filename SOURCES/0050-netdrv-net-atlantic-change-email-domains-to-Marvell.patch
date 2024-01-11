@@ -1,0 +1,62 @@
+From 0a9eaf2afd2d270b088cfaa8b7da2b75bdeaccea Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:37:07 -0500
+Subject: [PATCH 050/139] [netdrv] net: atlantic: change email domains to
+ Marvell
+
+Message-id: <1604687916-15087-51-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338476
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 050/139] net: atlantic: change email domains to Marvell
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 362cabda8d4da80152c20e11502ceee6672eb1c1
+Author: Igor Russkikh <irusskikh@marvell.com>
+Date:   Thu Nov 7 22:42:08 2019 +0000
+
+    net: atlantic: change email domains to Marvell
+
+    Aquantia is now part of Marvell, eventually we'll cease standalone
+    aquantia.com domain. Thus, change the maintainers file and some other
+    references to @marvell.com domain
+
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/Makefile | 7 -------
+ 1 file changed, 7 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/Makefile b/drivers/net/ethernet/aquantia/atlantic/Makefile
+index 0020726db204..6e0a6e234483 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/Makefile
++++ b/drivers/net/ethernet/aquantia/atlantic/Makefile
+@@ -4,15 +4,8 @@
+ # aQuantia Ethernet Controller AQtion Linux Driver
+ # Copyright(c) 2014-2017 aQuantia Corporation.
+ #
+-# Contact Information: <rdc-drv@aquantia.com>
+-# aQuantia Corporation, 105 E. Tasman Dr. San Jose, CA 95134, USA
+-#
+ ################################################################################
+ 
+-#
+-# Makefile for the AQtion(tm) Ethernet driver
+-#
+-
+ obj-$(CONFIG_AQTION) += atlantic.o
+ 
+ atlantic-objs := aq_main.o \
+-- 
+2.13.6
+

@@ -1,0 +1,80 @@
+From a011ce039a9c68edeefa0a5d664d9802d9c9a747 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:36:52 -0500
+Subject: [PATCH 035/139] [netdrv] net: aquantia: make two symbols be static
+
+Message-id: <1604687916-15087-36-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338463
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 035/139] net: aquantia: make two symbols be static
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 11dbb632a45a120ceb64f9f2a733992f947278c8
+Author: Mao Wenan <maowenan@huawei.com>
+Date:   Sat Oct 26 10:07:38 2019 +0800
+
+    net: aquantia: make two symbols be static
+
+    When using ARCH=mips CROSS_COMPILE=mips-linux-gnu-
+    to build drivers/net/ethernet/aquantia/atlantic/aq_ptp.o
+    and drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.o,
+    below errors can be seen:
+    drivers/net/ethernet/aquantia/atlantic/aq_ptp.c:1378:6:
+    warning: symbol 'aq_ptp_poll_sync_work_cb' was not declared.
+    Should it be static?
+
+    drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c:1155:5:
+    warning: symbol 'hw_atl_b0_ts_to_sys_clock' was not declared.
+    Should it be static?
+
+    This patch to make aq_ptp_poll_sync_work_cb and hw_atl_b0_ts_to_sys_clock
+    be static to fix these warnings.
+
+    Fixes: 9c477032f7d0 ("net: aquantia: add support for PIN funcs")
+    Signed-off-by: Mao Wenan <maowenan@huawei.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_ptp.c           | 2 +-
+ drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c | 2 +-
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_ptp.c b/drivers/net/ethernet/aquantia/atlantic/aq_ptp.c
+index dca092f454b4..4ca36003c6ca 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_ptp.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_ptp.c
+@@ -1375,7 +1375,7 @@ static int aq_ptp_check_sync1588(struct aq_ptp_s *aq_ptp)
+ 	return 0;
+ }
+ 
+-void aq_ptp_poll_sync_work_cb(struct work_struct *w)
++static void aq_ptp_poll_sync_work_cb(struct work_struct *w)
+ {
+ 	struct delayed_work *dw = to_delayed_work(w);
+ 	struct aq_ptp_s *aq_ptp = container_of(dw, struct aq_ptp_s, poll_sync);
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
+index abee561ea54e..c7297ca03624 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
+@@ -1152,7 +1152,7 @@ static int hw_atl_b0_set_sys_clock(struct aq_hw_s *self, u64 time, u64 ts)
+ 	return hw_atl_b0_adj_sys_clock(self, delta);
+ }
+ 
+-int hw_atl_b0_ts_to_sys_clock(struct aq_hw_s *self, u64 ts, u64 *time)
++static int hw_atl_b0_ts_to_sys_clock(struct aq_hw_s *self, u64 ts, u64 *time)
+ {
+ 	*time = self->ptp_clk_offset + ts;
+ 	return 0;
+-- 
+2.13.6
+

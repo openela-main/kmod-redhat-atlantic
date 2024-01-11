@@ -1,0 +1,56 @@
+From ff88b058f5c23feb6ed26c83db96d8aa397dce2b Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:38:29 -0500
+Subject: [PATCH 132/139] [netdrv] net: atlantic: use U32_MAX in aq_hw_utils.c
+
+Message-id: <1604687916-15087-133-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338552
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 132/139] net: atlantic: use U32_MAX in aq_hw_utils.c
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 88bc9cf143a1f34978bcda21114cc81324c9e118
+Author: Mark Starovoytov <mstarovoitov@marvell.com>
+Date:   Mon Jul 20 21:32:41 2020 +0300
+
+    net: atlantic: use U32_MAX in aq_hw_utils.c
+
+    This patch replaces magic constant ~0U usage with U32_MAX in aq_hw_utils.c
+
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_hw_utils.c | 5 ++---
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_hw_utils.c b/drivers/net/ethernet/aquantia/atlantic/aq_hw_utils.c
+index ae85c0a7d238..1921741f7311 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_hw_utils.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_hw_utils.c
+@@ -41,9 +41,8 @@ u32 aq_hw_read_reg(struct aq_hw_s *hw, u32 reg)
+ {
+ 	u32 value = readl(hw->mmio + reg);
+ 
+-	if ((~0U) == value &&
+-	    (~0U) == readl(hw->mmio +
+-			   hw->aq_nic_cfg->aq_hw_caps->hw_alive_check_addr))
++	if (value == U32_MAX &&
++	    readl(hw->mmio + hw->aq_nic_cfg->aq_hw_caps->hw_alive_check_addr) == U32_MAX)
+ 		aq_utils_obj_set(&hw->flags, AQ_HW_FLAG_ERR_UNPLUG);
+ 
+ 	return value;
+-- 
+2.13.6
+

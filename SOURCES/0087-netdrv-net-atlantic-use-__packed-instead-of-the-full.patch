@@ -1,0 +1,64 @@
+From df116d1021a40269baf7a6211166b4c27f429f58 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:37:44 -0500
+Subject: [PATCH 087/139] [netdrv] net: atlantic: use __packed instead of the
+ full expansion
+
+Message-id: <1604687916-15087-88-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338514
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 087/139] net: atlantic: use __packed instead of the full expansion.
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 38e86bfcf7f565639d89ce99ecf41a598f652cdc
+Author: Mark Starovoytov <mstarovoitov@marvell.com>
+Date:   Sat May 9 09:46:54 2020 +0300
+
+    net: atlantic: use __packed instead of the full expansion.
+
+    This patches fixes the review comment made by Jakub Kicinski
+    in the "net: atlantic: A2 support" patch series.
+
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: Jakub Kicinski <kuba@kernel.org>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils.h | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils.h b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils.h
+index 2317dd8459d0..b66fa346581c 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils.h
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl2/hw_atl2_utils.h
+@@ -103,7 +103,7 @@ struct sleep_proxy_s {
+ 		u32 crc32;
+ 	} wake_up_pattern[8];
+ 
+-	struct __attribute__ ((__packed__)) {
++	struct __packed {
+ 		u8 arp_responder:1;
+ 		u8 echo_responder:1;
+ 		u8 igmp_client:1;
+@@ -119,7 +119,7 @@ struct sleep_proxy_s {
+ 	u32 ipv4_offload_addr[8];
+ 	u32 reserved[8];
+ 
+-	struct __attribute__ ((__packed__)) {
++	struct __packed {
+ 		u8 ns_responder:1;
+ 		u8 echo_responder:1;
+ 		u8 mld_client:1;
+-- 
+2.13.6
+

@@ -1,0 +1,158 @@
+From 65ee75983ccc5253adadd1b8cc7a16c360a55248 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:37:25 -0500
+Subject: [PATCH 068/139] [netdrv] net: atlantic: MACSec offload statistics
+ implementation
+
+Message-id: <1604687916-15087-69-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338495
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 068/139] net: atlantic: MACSec offload statistics implementation
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+Conflict: merging only refactoring of stats. actual macsec offload code
+is skipped
+
+commit aec0f1aac58e81e88efe381dc5813e2e4d2858f2
+Author: Dmitry Bogdanov <dbogdanov@marvell.com>
+Date:   Wed Mar 25 15:52:45 2020 +0300
+
+    net: atlantic: MACSec offload statistics implementation
+
+    This patch adds support for MACSec statistics on Atlantic network cards.
+
+    Signed-off-by: Dmitry Bogdanov <dbogdanov@marvell.com>
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ .../net/ethernet/aquantia/atlantic/aq_ethtool.c    | 31 ++++++++++------------
+ drivers/net/ethernet/aquantia/atlantic/aq_nic.c    |  5 +++-
+ drivers/net/ethernet/aquantia/atlantic/aq_nic.h    |  2 +-
+ 3 files changed, 19 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c b/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
+index 6781256a318a..77a855314b4c 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
+@@ -104,18 +104,23 @@ static const char aq_ethtool_priv_flag_names[][ETH_GSTRING_LEN] = {
+ 	"PHYExternalLoopback",
+ };
+ 
++static u32 aq_ethtool_n_stats(struct net_device *ndev)
++{
++	struct aq_nic_s *nic = netdev_priv(ndev);
++	struct aq_nic_cfg_s *cfg = aq_nic_get_cfg(nic);
++	u32 n_stats = ARRAY_SIZE(aq_ethtool_stat_names) +
++		      ARRAY_SIZE(aq_ethtool_queue_stat_names) * cfg->vecs;
++
++	return n_stats;
++}
++
+ static void aq_ethtool_stats(struct net_device *ndev,
+ 			     struct ethtool_stats *stats, u64 *data)
+ {
+ 	struct aq_nic_s *aq_nic = netdev_priv(ndev);
+-	struct aq_nic_cfg_s *cfg;
+-
+-	cfg = aq_nic_get_cfg(aq_nic);
+ 
+-	memset(data, 0, (ARRAY_SIZE(aq_ethtool_stat_names) +
+-			 ARRAY_SIZE(aq_ethtool_queue_stat_names) *
+-			 cfg->vecs) * sizeof(u64));
+-	aq_nic_get_stats(aq_nic, data);
++	memset(data, 0, aq_ethtool_n_stats(ndev) * sizeof(u64));
++	data = aq_nic_get_stats(aq_nic, data);
+ }
+ 
+ static void aq_ethtool_get_drvinfo(struct net_device *ndev,
+@@ -123,11 +128,9 @@ static void aq_ethtool_get_drvinfo(struct net_device *ndev,
+ {
+ 	struct pci_dev *pdev = to_pci_dev(ndev->dev.parent);
+ 	struct aq_nic_s *aq_nic = netdev_priv(ndev);
+-	struct aq_nic_cfg_s *cfg;
+ 	u32 firmware_version;
+ 	u32 regs_count;
+ 
+-	cfg = aq_nic_get_cfg(aq_nic);
+ 	firmware_version = aq_nic_get_fw_version(aq_nic);
+ 	regs_count = aq_nic_get_regs_count(aq_nic);
+ 
+@@ -139,8 +142,7 @@ static void aq_ethtool_get_drvinfo(struct net_device *ndev,
+ 
+ 	strlcpy(drvinfo->bus_info, pdev ? pci_name(pdev) : "",
+ 		sizeof(drvinfo->bus_info));
+-	drvinfo->n_stats = ARRAY_SIZE(aq_ethtool_stat_names) +
+-		cfg->vecs * ARRAY_SIZE(aq_ethtool_queue_stat_names);
++	drvinfo->n_stats = aq_ethtool_n_stats(ndev);
+ 	drvinfo->testinfo_len = 0;
+ 	drvinfo->regdump_len = regs_count;
+ 	drvinfo->eedump_len = 0;
+@@ -209,16 +211,11 @@ static int aq_ethtool_set_phys_id(struct net_device *ndev,
+ 
+ static int aq_ethtool_get_sset_count(struct net_device *ndev, int stringset)
+ {
+-	struct aq_nic_s *aq_nic = netdev_priv(ndev);
+-	struct aq_nic_cfg_s *cfg;
+ 	int ret = 0;
+ 
+-	cfg = aq_nic_get_cfg(aq_nic);
+-
+ 	switch (stringset) {
+ 	case ETH_SS_STATS:
+-		ret = ARRAY_SIZE(aq_ethtool_stat_names) +
+-			cfg->vecs * ARRAY_SIZE(aq_ethtool_queue_stat_names);
++		ret = aq_ethtool_n_stats(ndev);
+ 		break;
+ 	case ETH_SS_PRIV_FLAGS:
+ 		ret = ARRAY_SIZE(aq_ethtool_priv_flag_names);
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_nic.c b/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
+index e95f6a6bef73..b478becc68b2 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
+@@ -765,7 +765,7 @@ int aq_nic_get_regs_count(struct aq_nic_s *self)
+ 	return self->aq_nic_cfg.aq_hw_caps->mac_regs_count;
+ }
+ 
+-void aq_nic_get_stats(struct aq_nic_s *self, u64 *data)
++u64 *aq_nic_get_stats(struct aq_nic_s *self, u64 *data)
+ {
+ 	struct aq_vec_s *aq_vec = NULL;
+ 	struct aq_stats_s *stats;
+@@ -815,7 +815,10 @@ void aq_nic_get_stats(struct aq_nic_s *self, u64 *data)
+ 		aq_vec_get_sw_stats(aq_vec, data, &count);
+ 	}
+ 
++	data += count;
++
+ err_exit:;
++	return data;
+ }
+ 
+ static void aq_nic_update_ndev_stats(struct aq_nic_s *self)
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_nic.h b/drivers/net/ethernet/aquantia/atlantic/aq_nic.h
+index a752f8bb4b08..26436671c474 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_nic.h
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_nic.h
+@@ -154,7 +154,7 @@ unsigned int aq_nic_map_skb(struct aq_nic_s *self, struct sk_buff *skb,
+ int aq_nic_xmit(struct aq_nic_s *self, struct sk_buff *skb);
+ int aq_nic_get_regs(struct aq_nic_s *self, struct ethtool_regs *regs, void *p);
+ int aq_nic_get_regs_count(struct aq_nic_s *self);
+-void aq_nic_get_stats(struct aq_nic_s *self, u64 *data);
++u64 *aq_nic_get_stats(struct aq_nic_s *self, u64 *data);
+ int aq_nic_stop(struct aq_nic_s *self);
+ void aq_nic_deinit(struct aq_nic_s *self, bool link_down);
+ void aq_nic_set_power(struct aq_nic_s *self);
+-- 
+2.13.6
+

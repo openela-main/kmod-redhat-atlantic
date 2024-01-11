@@ -1,0 +1,241 @@
+From e9f9048e434b2dc20965537e7bc51c65951301bd Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:36:24 -0500
+Subject: [PATCH 007/139] [netdrv] net: aquantia: vlan offloads logic in
+ datapath
+
+Message-id: <1604687916-15087-8-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338432
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 007/139] net: aquantia: vlan offloads logic in datapath
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 880b3ca5043d16c887cc8ad22eb6831cace048b9
+Author: Igor Russkikh <Igor.Russkikh@aquantia.com>
+Date:   Wed Jun 26 12:35:46 2019 +0000
+
+    net: aquantia: vlan offloads logic in datapath
+
+    Update datapath by adding logic related to hardware assisted
+    vlan strip/insert behaviour.
+
+    Tested-by: Nikita Danilov <ndanilov@aquantia.com>
+    Signed-off-by: Igor Russkikh <igor.russkikh@aquantia.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_nic.c    | 23 +++++++---
+ drivers/net/ethernet/aquantia/atlantic/aq_ring.c   |  4 ++
+ .../ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c  | 52 ++++++++++++++++------
+ 3 files changed, 60 insertions(+), 19 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_nic.c b/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
+index d2d23491d0b1..e1392766e21e 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
+@@ -430,26 +430,37 @@ static unsigned int aq_nic_map_skb(struct aq_nic_s *self,
+ 	unsigned int dx = ring->sw_tail;
+ 	struct aq_ring_buff_s *first = NULL;
+ 	struct aq_ring_buff_s *dx_buff = &ring->buff_ring[dx];
++	bool need_context_tag = false;
++
++	dx_buff->flags = 0U;
+ 
+ 	if (unlikely(skb_is_gso(skb))) {
+-		dx_buff->flags = 0U;
++		dx_buff->mss = skb_shinfo(skb)->gso_size;
++		dx_buff->is_gso = 1U;
+ 		dx_buff->len_pkt = skb->len;
+ 		dx_buff->len_l2 = ETH_HLEN;
+ 		dx_buff->len_l3 = ip_hdrlen(skb);
+ 		dx_buff->len_l4 = tcp_hdrlen(skb);
+-		dx_buff->mss = skb_shinfo(skb)->gso_size;
+-		dx_buff->is_gso = 1U;
+ 		dx_buff->eop_index = 0xffffU;
+-
+ 		dx_buff->is_ipv6 =
+ 			(ip_hdr(skb)->version == 6) ? 1U : 0U;
++		need_context_tag = true;
++	}
+ 
++	if (self->aq_nic_cfg.is_vlan_tx_insert && skb_vlan_tag_present(skb)) {
++		dx_buff->vlan_tx_tag = skb_vlan_tag_get(skb);
++		dx_buff->len_pkt = skb->len;
++		dx_buff->is_vlan = 1U;
++		need_context_tag = true;
++	}
++
++	if (need_context_tag) {
+ 		dx = aq_ring_next_dx(ring, dx);
+ 		dx_buff = &ring->buff_ring[dx];
++		dx_buff->flags = 0U;
+ 		++ret;
+ 	}
+ 
+-	dx_buff->flags = 0U;
+ 	dx_buff->len = skb_headlen(skb);
+ 	dx_buff->pa = dma_map_single(aq_nic_get_dev(self),
+ 				     skb->data,
+@@ -538,7 +549,7 @@ static unsigned int aq_nic_map_skb(struct aq_nic_s *self,
+ 	     --ret, dx = aq_ring_next_dx(ring, dx)) {
+ 		dx_buff = &ring->buff_ring[dx];
+ 
+-		if (!dx_buff->is_gso && dx_buff->pa) {
++		if (!dx_buff->is_gso && !dx_buff->is_vlan && dx_buff->pa) {
+ 			if (unlikely(dx_buff->is_sop)) {
+ 				dma_unmap_single(aq_nic_get_dev(self),
+ 						 dx_buff->pa,
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_ring.c b/drivers/net/ethernet/aquantia/atlantic/aq_ring.c
+index 2a7b91ed17c5..3901d7994ca1 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_ring.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_ring.c
+@@ -409,6 +409,10 @@ int aq_ring_rx_clean(struct aq_ring_s *self,
+ 			}
+ 		}
+ 
++		if (buff->is_vlan)
++			__vlan_hwaccel_put_tag(skb, htons(ETH_P_8021Q),
++					       buff->vlan_rx_tag);
++
+ 		skb->protocol = eth_type_trans(skb, ndev);
+ 
+ 		aq_rx_checksum(self, buff, skb);
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
+index 8ead2a8d2893..30f7fc4c97ff 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_b0.c
+@@ -247,6 +247,9 @@ static int hw_atl_b0_hw_offload_set(struct aq_hw_s *self,
+ 	/* LSO offloads*/
+ 	hw_atl_tdm_large_send_offload_en_set(self, 0xFFFFFFFFU);
+ 
++	/* Outer VLAN tag offload */
++	hw_atl_rpo_outer_vlan_tag_mode_set(self, 1U);
++
+ /* LRO offloads */
+ 	{
+ 		unsigned int val = (8U < HW_ATL_B0_LRO_RXD_MAX) ? 0x3U :
+@@ -489,6 +492,7 @@ static int hw_atl_b0_hw_ring_tx_xmit(struct aq_hw_s *self,
+ 	unsigned int buff_pa_len = 0U;
+ 	unsigned int pkt_len = 0U;
+ 	unsigned int frag_count = 0U;
++	bool is_vlan = false;
+ 	bool is_gso = false;
+ 
+ 	buff = &ring->buff_ring[ring->sw_tail];
+@@ -504,35 +508,43 @@ static int hw_atl_b0_hw_ring_tx_xmit(struct aq_hw_s *self,
+ 		buff = &ring->buff_ring[ring->sw_tail];
+ 
+ 		if (buff->is_gso) {
++			txd->ctl |= HW_ATL_B0_TXD_CTL_CMD_TCP;
++			txd->ctl |= HW_ATL_B0_TXD_CTL_DESC_TYPE_TXC;
+ 			txd->ctl |= (buff->len_l3 << 31) |
+-				(buff->len_l2 << 24) |
+-				HW_ATL_B0_TXD_CTL_CMD_TCP |
+-				HW_ATL_B0_TXD_CTL_DESC_TYPE_TXC;
+-			txd->ctl2 |= (buff->mss << 16) |
+-				(buff->len_l4 << 8) |
+-				(buff->len_l3 >> 1);
++				    (buff->len_l2 << 24);
++			txd->ctl2 |= (buff->mss << 16);
++			is_gso = true;
+ 
+ 			pkt_len -= (buff->len_l4 +
+ 				    buff->len_l3 +
+ 				    buff->len_l2);
+-			is_gso = true;
+-
+ 			if (buff->is_ipv6)
+ 				txd->ctl |= HW_ATL_B0_TXD_CTL_CMD_IPV6;
+-		} else {
++			txd->ctl2 |= (buff->len_l4 << 8) |
++				     (buff->len_l3 >> 1);
++		}
++		if (buff->is_vlan) {
++			txd->ctl |= HW_ATL_B0_TXD_CTL_DESC_TYPE_TXC;
++			txd->ctl |= buff->vlan_tx_tag << 4;
++			is_vlan = true;
++		}
++		if (!buff->is_gso && !buff->is_vlan) {
+ 			buff_pa_len = buff->len;
+ 
+ 			txd->buf_addr = buff->pa;
+ 			txd->ctl |= (HW_ATL_B0_TXD_CTL_BLEN &
+ 						((u32)buff_pa_len << 4));
+ 			txd->ctl |= HW_ATL_B0_TXD_CTL_DESC_TYPE_TXD;
++
+ 			/* PAY_LEN */
+ 			txd->ctl2 |= HW_ATL_B0_TXD_CTL2_LEN & (pkt_len << 14);
+ 
+-			if (is_gso) {
+-				txd->ctl |= HW_ATL_B0_TXD_CTL_CMD_LSO;
++			if (is_gso || is_vlan) {
++				/* enable tx context */
+ 				txd->ctl2 |= HW_ATL_B0_TXD_CTL2_CTX_EN;
+ 			}
++			if (is_gso)
++				txd->ctl |= HW_ATL_B0_TXD_CTL_CMD_LSO;
+ 
+ 			/* Tx checksum offloads */
+ 			if (buff->is_ip_cso)
+@@ -541,13 +553,16 @@ static int hw_atl_b0_hw_ring_tx_xmit(struct aq_hw_s *self,
+ 			if (buff->is_udp_cso || buff->is_tcp_cso)
+ 				txd->ctl |= HW_ATL_B0_TXD_CTL_CMD_TUCSO;
+ 
++			if (is_vlan)
++				txd->ctl |= HW_ATL_B0_TXD_CTL_CMD_VLAN;
++
+ 			if (unlikely(buff->is_eop)) {
+ 				txd->ctl |= HW_ATL_B0_TXD_CTL_EOP;
+ 				txd->ctl |= HW_ATL_B0_TXD_CTL_CMD_WB;
+ 				is_gso = false;
++				is_vlan = false;
+ 			}
+ 		}
+-
+ 		ring->sw_tail = aq_ring_next_dx(ring, ring->sw_tail);
+ 	}
+ 
+@@ -685,11 +700,15 @@ static int hw_atl_b0_hw_ring_rx_receive(struct aq_hw_s *self,
+ 
+ 		buff = &ring->buff_ring[ring->hw_head];
+ 
++		buff->flags = 0U;
++		buff->is_hash_l4 = 0U;
++
+ 		rx_stat = (0x0000003CU & rxd_wb->status) >> 2;
+ 
+ 		is_rx_check_sum_enabled = (rxd_wb->type >> 19) & 0x3U;
+ 
+-		pkt_type = 0xFFU & (rxd_wb->type >> 4);
++		pkt_type = (rxd_wb->type & HW_ATL_B0_RXD_WB_STAT_PKTTYPE) >>
++			   HW_ATL_B0_RXD_WB_STAT_PKTTYPE_SHIFT;
+ 
+ 		if (is_rx_check_sum_enabled & BIT(0) &&
+ 		    (0x0U == (pkt_type & 0x3U)))
+@@ -710,6 +729,13 @@ static int hw_atl_b0_hw_ring_rx_receive(struct aq_hw_s *self,
+ 			buff->is_cso_err = 0U;
+ 		}
+ 
++		if (self->aq_nic_cfg->is_vlan_rx_strip &&
++		    ((pkt_type & HW_ATL_B0_RXD_WB_PKTTYPE_VLAN) ||
++		     (pkt_type & HW_ATL_B0_RXD_WB_PKTTYPE_VLAN_DOUBLE))) {
++			buff->is_vlan = 1;
++			buff->vlan_rx_tag = le16_to_cpu(rxd_wb->vlan);
++		}
++
+ 		if ((rx_stat & BIT(0)) || rxd_wb->type & 0x1000U) {
+ 			/* MAC error or DMA error */
+ 			buff->is_error = 1U;
+-- 
+2.13.6
+

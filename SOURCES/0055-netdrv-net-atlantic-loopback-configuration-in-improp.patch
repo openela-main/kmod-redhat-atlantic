@@ -1,0 +1,65 @@
+From 6d9e902625558d33bd9d6b52b53a11793dc14ef8 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:37:12 -0500
+Subject: [PATCH 055/139] [netdrv] net: atlantic: loopback configuration in
+ improper place
+
+Message-id: <1604687916-15087-56-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338485
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 055/139] net: atlantic: loopback configuration in improper place
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 883daa1854b61fe3d21d7d9bf2c81d26a07d586b
+Author: Igor Russkikh <irusskikh@marvell.com>
+Date:   Mon Jan 6 14:22:29 2020 +0300
+
+    net: atlantic: loopback configuration in improper place
+
+    Initial loopback configuration should be called earlier, before
+    starting traffic on HW blocks. Otherwise depending on race conditions
+    it could be kept disabled.
+
+    Fixes: ea4b4d7fc106 ("net: atlantic: loopback tests via private flags")
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_nic.c | 4 ++--
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_nic.c b/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
+index a17a4da7bc15..c85e3e29012c 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_nic.c
+@@ -403,6 +403,8 @@ int aq_nic_start(struct aq_nic_s *self)
+ 	if (err < 0)
+ 		goto err_exit;
+ 
++	aq_nic_set_loopback(self);
++
+ 	err = self->aq_hw_ops->hw_start(self->aq_hw);
+ 	if (err < 0)
+ 		goto err_exit;
+@@ -413,8 +415,6 @@ int aq_nic_start(struct aq_nic_s *self)
+ 
+ 	INIT_WORK(&self->service_task, aq_nic_service_task);
+ 
+-	aq_nic_set_loopback(self);
+-
+ 	timer_setup(&self->service_timer, aq_nic_service_timer_cb, 0);
+ 	aq_nic_service_timer_cb(&self->service_timer);
+ 
+-- 
+2.13.6
+

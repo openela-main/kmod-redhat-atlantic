@@ -1,0 +1,79 @@
+From c2bb6fc3b953ff2e6ceb79ef305a5c461e835e82 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:37:23 -0500
+Subject: [PATCH 066/139] [netdrv] net: atlantic: Replace zero-length array
+ with flexible-array member
+
+Message-id: <1604687916-15087-67-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338493
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 066/139] net: atlantic: Replace zero-length array with flexible-array member
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 0fcf4666431fcc42e96c48d72a56b284c30d6254
+Author: Gustavo A. R. Silva <gustavo@embeddedor.com>
+Date:   Mon Mar 2 06:19:53 2020 -0600
+
+    net: atlantic: Replace zero-length array with flexible-array member
+
+    The current codebase makes use of the zero-length array language
+    extension to the C90 standard, but the preferred mechanism to declare
+    variable-length types such as these ones is a flexible array member[1][2],
+    introduced in C99:
+
+    struct foo {
+            int stuff;
+            struct boo array[];
+    };
+
+    By making use of the mechanism above, we will get a compiler warning
+    in case the flexible array does not occur last in the structure, which
+    will help us prevent some kind of undefined behavior bugs from being
+    inadvertently introduced[3] to the codebase from now on.
+
+    Also, notice that, dynamic memory allocations won't be affected by
+    this change:
+
+    "Flexible array members have incomplete type, and so the sizeof operator
+    may not be applied. As a quirk of the original implementation of
+    zero-length arrays, sizeof evaluates to zero."[1]
+
+    This issue was found with the help of Coccinelle.
+
+    [1] https://gcc.gnu.org/onlinedocs/gcc/Zero-Length.html
+    [2] https://github.com/KSPP/linux/issues/21
+    [3] commit 76497732932f ("cxgb3/l2t: Fix undefined behaviour")
+
+    Signed-off-by: Gustavo A. R. Silva <gustavo@embeddedor.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.h | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.h b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.h
+index 42f0c5c6ec2d..6b4f701e7006 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.h
++++ b/drivers/net/ethernet/aquantia/atlantic/hw_atl/hw_atl_utils.h
+@@ -225,7 +225,7 @@ struct __packed offload_info {
+ 	struct offload_port_info ports;
+ 	struct offload_ka_info kas;
+ 	struct offload_rr_info rrs;
+-	u8 buf[0];
++	u8 buf[];
+ };
+ 
+ struct __packed hw_atl_utils_fw_rpc {
+-- 
+2.13.6
+

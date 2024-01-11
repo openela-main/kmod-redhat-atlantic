@@ -1,0 +1,58 @@
+From 345e431b62606092d9eb6aabe60f8aad16205329 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:37:28 -0500
+Subject: [PATCH 071/139] [netdrv] net: atlantic: add A2 device IDs
+
+Message-id: <1604687916-15087-72-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338565
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 071/139] net: atlantic: add A2 device IDs
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 98c4353c5add3cb2bbb3c2da1cbd7fd2d09f396b
+Author: Igor Russkikh <irusskikh@marvell.com>
+Date:   Thu Apr 30 11:04:30 2020 +0300
+
+    net: atlantic: add A2 device IDs
+
+    Adding device ids for the new generation of atlantic nic.
+
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_common.h | 7 +++++++
+ 1 file changed, 7 insertions(+)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_common.h b/drivers/net/ethernet/aquantia/atlantic/aq_common.h
+index d5beb798bab6..1261e7c7a01e 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_common.h
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_common.h
+@@ -37,6 +37,13 @@
+ #define AQ_DEVICE_ID_AQC111S	0x91B1
+ #define AQ_DEVICE_ID_AQC112S	0x92B1
+ 
++#define AQ_DEVICE_ID_AQC113DEV	0x00C0
++#define AQ_DEVICE_ID_AQC113CS	0x94C0
++#define AQ_DEVICE_ID_AQC114CS	0x93C0
++#define AQ_DEVICE_ID_AQC113	0x04C0
++#define AQ_DEVICE_ID_AQC113C	0x14C0
++#define AQ_DEVICE_ID_AQC115C	0x12C0
++
+ #define HW_ATL_NIC_NAME "Marvell (aQuantia) AQtion 10Gbit Network Adapter"
+ 
+ #define AQ_HWREV_ANY	0
+-- 
+2.13.6
+

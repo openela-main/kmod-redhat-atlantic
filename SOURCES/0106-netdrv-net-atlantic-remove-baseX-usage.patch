@@ -1,0 +1,56 @@
+From fb3237242fc7f7c8ac73dd9df0b784ac9a4b9f1c Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:38:03 -0500
+Subject: [PATCH 106/139] [netdrv] net: atlantic: remove baseX usage
+
+Message-id: <1604687916-15087-107-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338535
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 106/139] net: atlantic: remove baseX usage
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit e61b28686bae30b824b690c75d011a61f90c52dd
+Author: Nikita Danilov <ndanilov@marvell.com>
+Date:   Mon Jun 22 17:53:05 2020 +0300
+
+    net: atlantic: remove baseX usage
+
+    This patch removes 2.5G baseX wrong usage/reporting, since it shouldn't have
+    been mixed with baseT.
+
+    Signed-off-by: Nikita Danilov <ndanilov@marvell.com>
+    Signed-off-by: Mark Starovoytov <mstarovoitov@marvell.com>
+    Signed-off-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c | 3 ---
+ 1 file changed, 3 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c b/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
+index 59e7b326cfda..bd9b1991df81 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_ethtool.c
+@@ -489,9 +489,6 @@ static enum hw_atl_fw2x_rate eee_mask_to_ethtool_mask(u32 speed)
+ 	if (speed & AQ_NIC_RATE_EEE_10G)
+ 		rate |= SUPPORTED_10000baseT_Full;
+ 
+-	if (speed & AQ_NIC_RATE_EEE_2G5)
+-		rate |= SUPPORTED_2500baseX_Full;
+-
+ 	if (speed & AQ_NIC_RATE_EEE_1G)
+ 		rate |= SUPPORTED_1000baseT_Full;
+ 
+-- 
+2.13.6
+

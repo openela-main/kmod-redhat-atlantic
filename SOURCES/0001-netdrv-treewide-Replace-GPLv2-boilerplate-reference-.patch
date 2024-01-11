@@ -1,0 +1,92 @@
+From b90c68b784b589dd31510770959da82bcf983a74 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:36:18 -0500
+Subject: [PATCH 001/139] [netdrv] treewide: Replace GPLv2
+ boilerplate/reference with SPDX - rule 308
+
+Message-id: <1604687916-15087-2-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338430
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 001/139] treewide: Replace GPLv2 boilerplate/reference with SPDX - rule 308
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+Conflicts: Limit the scope of upstream commit to atlantic driver
+
+commit dcc4086d9e1abaf0c5477eaf14fec5ca903eb57d
+Author: Thomas Gleixner <tglx@linutronix.de>
+Date:   Wed May 29 16:57:23 2019 -0700
+
+    treewide: Replace GPLv2 boilerplate/reference with SPDX - rule 308
+
+    Based on 1 normalized pattern(s):
+
+      this program is free software you can redistribute it and or modify
+      it under the terms and conditions of the gnu general public license
+      version 2 as published by the free software foundation this program
+      is distributed in the hope it will be useful but without any
+      warranty without even the implied warranty of merchantability or
+      fitness for a particular purpose see the gnu general public license
+      for more details you should have received a copy of the gnu general
+      public license along with this program if not see http www gnu org
+      licenses the full gnu general public license is included in this
+      distribution in the file called copying
+
+    extracted by the scancode license scanner the SPDX license identifier
+
+      GPL-2.0-only
+
+    has been chosen to replace the boilerplate/reference in 12 file(s).
+
+    Signed-off-by: Thomas Gleixner <tglx@linutronix.de>
+    Reviewed-by: Alexios Zavras <alexios.zavras@intel.com>
+    Reviewed-by: Allison Randal <allison@lohutok.net>
+    Reviewed-by: Kate Stewart <kstewart@linuxfoundation.org>
+    Cc: linux-spdx@vger.kernel.org
+    Link: https://lkml.kernel.org/r/20190530000434.160381502@linutronix.de
+    Signed-off-by: Greg Kroah-Hartman <gregkh@linuxfoundation.org>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/Makefile | 16 +---------------
+ 1 file changed, 1 insertion(+), 15 deletions(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/Makefile b/drivers/net/ethernet/aquantia/atlantic/Makefile
+index 1f99cf832476..131cab855be7 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/Makefile
++++ b/drivers/net/ethernet/aquantia/atlantic/Makefile
+@@ -1,23 +1,9 @@
++# SPDX-License-Identifier: GPL-2.0-only
+ ################################################################################
+ #
+ # aQuantia Ethernet Controller AQtion Linux Driver
+ # Copyright(c) 2014-2017 aQuantia Corporation.
+ #
+-# This program is free software; you can redistribute it and/or modify it
+-# under the terms and conditions of the GNU General Public License,
+-# version 2, as published by the Free Software Foundation.
+-#
+-# This program is distributed in the hope it will be useful, but WITHOUT
+-# ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or
+-# FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License for
+-# more details.
+-#
+-# You should have received a copy of the GNU General Public License along
+-# with this program. If not, see <http://www.gnu.org/licenses/>.
+-#
+-# The full GNU General Public License is included in this distribution in
+-# the file called "COPYING".
+-#
+ # Contact Information: <rdc-drv@aquantia.com>
+ # aQuantia Corporation, 105 E. Tasman Dr. San Jose, CA 95134, USA
+ #
+-- 
+2.13.6
+

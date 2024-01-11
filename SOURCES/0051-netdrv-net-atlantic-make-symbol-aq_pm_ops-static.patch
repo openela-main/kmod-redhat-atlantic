@@ -1,0 +1,57 @@
+From 115e1a8dc328a3c1c4f0b007e1245c62eca3f85d Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:37:08 -0500
+Subject: [PATCH 051/139] [netdrv] net: atlantic: make symbol 'aq_pm_ops'
+ static
+
+Message-id: <1604687916-15087-52-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338478
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 051/139] net: atlantic: make symbol 'aq_pm_ops' static
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 0ee0bbb018938addf87b54d447cc5633d2e53490
+Author: zhengbin <zhengbin13@huawei.com>
+Date:   Tue Nov 12 14:59:41 2019 +0800
+
+    net: atlantic: make symbol 'aq_pm_ops' static
+
+    Fix sparse warnings:
+
+    drivers/net/ethernet/aquantia/atlantic/aq_pci_func.c:426:25: warning: symbol 'aq_pm_ops' was not declared. Should it be static?
+
+    Reported-by: Hulk Robot <hulkci@huawei.com>
+    Fixes: 8aaa112a57c1 ("net: atlantic: refactoring pm logic")
+    Signed-off-by: zhengbin <zhengbin13@huawei.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_pci_func.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_pci_func.c b/drivers/net/ethernet/aquantia/atlantic/aq_pci_func.c
+index a161026cfbfd..2bb329606794 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_pci_func.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_pci_func.c
+@@ -423,7 +423,7 @@ static int aq_pm_resume_restore(struct device *dev)
+ 	return atl_resume_common(dev, true);
+ }
+ 
+-const struct dev_pm_ops aq_pm_ops = {
++static const struct dev_pm_ops aq_pm_ops = {
+ 	.suspend = aq_pm_suspend_poweroff,
+ 	.poweroff = aq_pm_suspend_poweroff,
+ 	.freeze = aq_pm_freeze,
+-- 
+2.13.6
+

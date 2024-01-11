@@ -1,0 +1,54 @@
+From 4aac272db692d044aa87f843eef1772af4f97a18 Mon Sep 17 00:00:00 2001
+From: Igor Russkikh <irusskik@redhat.com>
+Date: Fri, 6 Nov 2020 18:36:50 -0500
+Subject: [PATCH 033/139] [netdrv] net: aquantia: fix spelling mistake:
+ tx_queus -> tx_queues
+
+Message-id: <1604687916-15087-34-git-send-email-irusskik@redhat.com>
+Patchwork-id: 338459
+Patchwork-instance: patchwork
+O-Subject: [RHEL8.4 BZ 1857861 033/139] net: aquantia: fix spelling mistake: tx_queus -> tx_queues
+Bugzilla: 1857861
+RH-Acked-by: David Arcari <darcari@redhat.com>
+RH-Acked-by: John Linville <linville@redhat.com>
+RH-Acked-by: Tony Camuso <tcamuso@redhat.com>
+
+Bugzilla: http://bugzilla.redhat.com/1857861
+
+commit 69977901867aefbdda5f5f75af067fff08650af2
+Author: Colin Ian King <colin.king@canonical.com>
+Date:   Fri Oct 25 12:38:28 2019 +0100
+
+    net: aquantia: fix spelling mistake: tx_queus -> tx_queues
+
+    There is a spelling mistake in a netdev_err error message. Fix it.
+
+    Signed-off-by: Colin Ian King <colin.king@canonical.com>
+    Reviewed-by: Igor Russkikh <irusskikh@marvell.com>
+    Signed-off-by: David S. Miller <davem@davemloft.net>
+
+Signed-off-by: Igor Russkikh <irusskik@redhat.com>
+
+Cc: David Arcari <darcari@redhat.com>
+Cc: Igor Russkikh <irusskik@redhat.com>
+Signed-off-by: Jan Stancek <jstancek@redhat.com>
+---
+ drivers/net/ethernet/aquantia/atlantic/aq_ptp.c | 2 +-
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+
+diff --git a/drivers/net/ethernet/aquantia/atlantic/aq_ptp.c b/drivers/net/ethernet/aquantia/atlantic/aq_ptp.c
+index bb6fbbadfd47..1b3be0553e31 100644
+--- a/drivers/net/ethernet/aquantia/atlantic/aq_ptp.c
++++ b/drivers/net/ethernet/aquantia/atlantic/aq_ptp.c
+@@ -533,7 +533,7 @@ void aq_ptp_tx_hwtstamp(struct aq_nic_s *aq_nic, u64 timestamp)
+ 	struct skb_shared_hwtstamps hwtstamp;
+ 
+ 	if (!skb) {
+-		netdev_err(aq_nic->ndev, "have timestamp but tx_queus empty\n");
++		netdev_err(aq_nic->ndev, "have timestamp but tx_queues empty\n");
+ 		return;
+ 	}
+ 
+-- 
+2.13.6
+
